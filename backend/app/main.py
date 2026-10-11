@@ -7,6 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
+# Comma-separated list, e.g. "http://localhost:3000,https://app.example.com"
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+    if origin.strip()
+]
+
 app = FastAPI(title="Bank Statement Intelligence")
 app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS,
                    allow_methods=["*"], allow_headers=["*"])

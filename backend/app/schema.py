@@ -36,12 +36,12 @@ class Category(StrEnum):
 
 
 class Transaction(BaseModel):
-    date: dt.date
+    date: dt.date = Field(description="Transaction date, ISO 8601 (YYYY-MM-DD)")
     description: str
-    amount: PositiveMoney = Field(gt=0)
-    direction: Direction
-    balance: Money | None = None
-    category: Category = Category.OTHER
+    amount: Money = Field(gt=0, description="Always positive, rounded to 2 decimals; see direction")
+    direction: Direction = Field(description="credit = money in, debit = money out")
+    balance: Money | None = Field(default=None, description="Running balance after this transaction; signed")
+    category: Category = Field(default=Category.OTHER, description="One of the 8 fixed categories")
     reference: str | None = None
     page: int | None = Field(default=None, ge=1, description="Source PDF page")
 

@@ -379,9 +379,10 @@ def specs() -> list[Spec]:
             ],
         ),
         Spec(
-            stem="meridian_mar2026", suffix="pdf",
+            stem="meridian_q1-2026", suffix="pdf",
             bank_name="Meridian Bank", holder_name="Farah Siddiqui", account_number="******3307",
-            period_start=dt.date(2026, 3, 1), period_end=dt.date(2026, 3, 31),
+            # A full quarter so the table runs over several pages and the header repeats.
+            period_start=dt.date(2026, 1, 1), period_end=dt.date(2026, 3, 31),
             opening=Decimal("310000.00"), salary=Decimal("138000"), rent=Decimal("35000"),
             employer="ORBIT ANALYTICS PRIVATE LIMITED",
             style={

@@ -116,3 +116,32 @@ class Analytics(BaseModel):
     )
     spending_by_category: dict[Category, Money] = Field(description="total_spending split by category")
     top_spending_categories: list[Category] = Field(max_length=3, description="Highest spending first")
+
+
+class SkippedRowOut(BaseModel):
+    row: dict[str, str] = Field(description="The row as extracted, column name to text")
+    reason: str = Field(description='Why it is not a transaction, e.g. "no date" for a totals row')
+
+
+class AISummary(BaseModel):
+    text: str
+    source: Literal["llm", "template"] = Field(
+        description="template when the LLM failed or used numbers that aren't in the computed figures"
+    )
+    unsupported_numbers: list[str] = Field(
+        default_factory=list, description="Numbers the LLM invented on its last attempt, if any"
+    )
+
+
+class AnalyzeResponse(BaseModel):
+    """Everything POST /analyze returns for one statement."""
+
+    source_file: str
+    account: StatementInfo
+    transactions: list[Transaction]
+    summary: Analytics
+    unusual: list[Transaction] = Field(description="The transactions with is_unusual set, in statement order")
+    ai_summary: AISummary
+    skipped_rows: list[SkippedRowOut] = Field(
+        default_factory=list, description="Table rows that weren't transactions: totals, opening balance, footers"
+    )

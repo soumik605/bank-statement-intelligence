@@ -1,6 +1,37 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$defs": {
+    "AISummary": {
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "source": {
+          "description": "template when the LLM failed or used numbers that aren't in the computed figures",
+          "enum": [
+            "llm",
+            "template"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "unsupported_numbers": {
+          "description": "Numbers the LLM invented on its last attempt, if any",
+          "items": {
+            "type": "string"
+          },
+          "title": "Unsupported Numbers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "text",
+        "source"
+      ],
+      "title": "AISummary",
+      "type": "object"
+    },
     "Analytics": {
       "additionalProperties": false,
       "properties": {
@@ -65,6 +96,57 @@
       "title": "Analytics",
       "type": "object"
     },
+    "AnalyzeResponse": {
+      "description": "Everything POST /analyze returns for one statement.",
+      "properties": {
+        "source_file": {
+          "title": "Source File",
+          "type": "string"
+        },
+        "account": {
+          "$ref": "#/$defs/StatementInfo"
+        },
+        "transactions": {
+          "items": {
+            "$ref": "#/$defs/Transaction"
+          },
+          "title": "Transactions",
+          "type": "array"
+        },
+        "summary": {
+          "$ref": "#/$defs/Analytics"
+        },
+        "unusual": {
+          "description": "The transactions with is_unusual set, in statement order",
+          "items": {
+            "$ref": "#/$defs/Transaction"
+          },
+          "title": "Unusual",
+          "type": "array"
+        },
+        "ai_summary": {
+          "$ref": "#/$defs/AISummary"
+        },
+        "skipped_rows": {
+          "description": "Table rows that weren't transactions: totals, opening balance, footers",
+          "items": {
+            "$ref": "#/$defs/SkippedRowOut"
+          },
+          "title": "Skipped Rows",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source_file",
+        "account",
+        "transactions",
+        "summary",
+        "unusual",
+        "ai_summary"
+      ],
+      "title": "AnalyzeResponse",
+      "type": "object"
+    },
     "Category": {
       "enum": [
         "Salary",
@@ -81,6 +163,29 @@
       ],
       "title": "Category",
       "type": "string"
+    },
+    "SkippedRowOut": {
+      "properties": {
+        "row": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The row as extracted, column name to text",
+          "title": "Row",
+          "type": "object"
+        },
+        "reason": {
+          "description": "Why it is not a transaction, e.g. \"no date\" for a totals row",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "row",
+        "reason"
+      ],
+      "title": "SkippedRowOut",
+      "type": "object"
     },
     "StatementInfo": {
       "additionalProperties": false,

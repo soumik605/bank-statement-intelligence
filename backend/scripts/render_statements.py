@@ -5,14 +5,16 @@
     Bank B  PDF: grid lines, Txn/Value Date, Amount + Dr/Cr, Western grouping (245,000.00)
     Bank C  PDF: no grid lines, DD-Mon-YYYY, signed amounts, Indian grouping (2,45,000.00)
 
-Each file gets a <name>_truth.json: the PipelinePayload with true categories and
-the ambiguous-row labels in meta.
+Each statement gets a <name>.truth.json next to it with the true category, anomaly
+flag and ambiguity note per row. It is built from the same payload object the
+statement is rendered from, so the two cannot disagree.
 
 Usage (from backend/):
     uv run python scripts/render_statements.py
 """
 import csv
 import datetime as dt
+import json
 import sys
 from pathlib import Path
 
@@ -49,9 +51,31 @@ def indian(x: float) -> str:
 
 
 def write_truth(payload: PipelinePayload, rendered: Path) -> Path:
-    payload.meta["rendered_file"] = rendered.name
-    out = rendered.with_name(f"{rendered.stem}_truth.json")
-    out.write_text(payload.model_dump_json(indent=2) + "\n")
+    """Write <statement>.truth.json. `row` is the 1-based position in the statement's transaction table."""
+    ambiguous = {r["index"]: r for r in payload.meta["ambiguous_rows"]}
+    anomalous = {a.transaction_index for a in payload.anomalies or []}
+    truth = {
+        "statement": rendered.name,
+        "opening_balance": payload.statement.opening_balance,
+        "closing_balance": payload.statement.closing_balance,
+        "transactions": [
+            {
+                "row": i + 1,
+                "date": t.date.isoformat(),
+                "description": t.description,
+                "amount": t.amount,
+                "direction": t.direction,
+                "category": t.category.value,
+                "is_anomaly": i in anomalous,
+                "ambiguous": i in ambiguous,
+                "acceptable": ambiguous[i]["acceptable"] if i in ambiguous else [],
+                "note": ambiguous[i]["reason"] if i in ambiguous else None,
+            }
+            for i, t in enumerate(payload.transactions)
+        ],
+    }
+    out = rendered.with_name(f"{rendered.stem}.truth.json")
+    out.write_text(json.dumps(truth, indent=2) + "\n")
     return out
 
 

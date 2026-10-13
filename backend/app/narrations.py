@@ -30,6 +30,8 @@ _HANDLE_BANK = {
     "oksbi": ("SBIN", "STATE BANK OF INDIA"),
     "sbi": ("SBIN", "STATE BANK OF INDIA"),
     "paytm": ("PYTM", "PAYTM PAYMENTS BANK"),
+    "apl": ("UTIB", "AXIS BANK"),  # Amazon Pay
+    "axisb": ("UTIB", "AXIS BANK"),  # CRED
 }
 _ONLINE_CITIES = ("MUMBAI", "BANGALORE", "GURGAON", "NEW DELHI")
 
@@ -71,7 +73,7 @@ class Narrator:
         tag = "CR" if direction == "credit" else "DR"
         match self.bank:
             case "sbi":
-                text = f"UPI/{tag}/{ref}/{name}/{code}/{vpa}"
+                text = f"UPI/{tag}/{ref}/{name}/{code}/{vpa}" + (f"/{note}" if note else "")
             case "hdfc":
                 text = f"UPI-{name}-{vpa}-{self.ifsc(code)}-{ref}-{note or 'PAYMENT'}"
             case "icici":

@@ -1,0 +1,611 @@
+{
+  "statement": {
+    "bank_name": "Sample Bank",
+    "account_holder": "WRIDDHISH HAYER",
+    "account_number": "XXXXXXXX4821",
+    "currency": "INR",
+    "period_start": "2026-01-01",
+    "period_end": "2026-01-31",
+    "opening_balance": 60000.0,
+    "closing_balance": 51010.14
+  },
+  "transactions": [
+    {
+      "date": "2026-01-01",
+      "description": "NEFT/ICICN723881263665/ACME TECH/SALARY JAN 2026",
+      "amount": 85000.0,
+      "direction": "credit",
+      "balance": 145000.0,
+      "category": "income",
+      "reference": "ICICN723881263665",
+      "page": null
+    },
+    {
+      "date": "2026-01-01",
+      "description": "UPI/P2M/375603255275/ZOMATO/UPI/AXIS BANK",
+      "amount": 321.48,
+      "direction": "debit",
+      "balance": 144678.52,
+      "category": "food",
+      "reference": "375603255275",
+      "page": null
+    },
+    {
+      "date": "2026-01-01",
+      "description": "UPI/P2M/311541682901/SWIGGY/UPI/YES BANK",
+      "amount": 416.89,
+      "direction": "debit",
+      "balance": 144261.63,
+      "category": "food",
+      "reference": "311541682901",
+      "page": null
+    },
+    {
+      "date": "2026-01-02",
+      "description": "UPI/P2M/732021587585/SWIGGY/UPI/PAYTM PAYMENTS BANK",
+      "amount": 553.68,
+      "direction": "debit",
+      "balance": 143707.95,
+      "category": "food",
+      "reference": "732021587585",
+      "page": null
+    },
+    {
+      "date": "2026-01-03",
+      "description": "UPI/P2M/397076902302/ZEPTO/UPI/HDFC BANK",
+      "amount": 1017.78,
+      "direction": "debit",
+      "balance": 142690.17,
+      "category": "food",
+      "reference": "397076902302",
+      "page": null
+    },
+    {
+      "date": "2026-01-05",
+      "description": "ECOM PUR/AJIO/NEW DELHI",
+      "amount": 1912.67,
+      "direction": "debit",
+      "balance": 140777.5,
+      "category": "shopping",
+      "reference": "380548657433",
+      "page": null
+    },
+    {
+      "date": "2026-01-05",
+      "description": "ATM-CASH/S1AB7638/BENGALURU",
+      "amount": 3500.0,
+      "direction": "debit",
+      "balance": 137277.5,
+      "category": "cash",
+      "reference": "S1AB7638",
+      "page": null
+    },
+    {
+      "date": "2026-01-05",
+      "description": "UPI/P2A/832354265692/AARNA VARTY/UPI/AXIS BANK",
+      "amount": 22000.0,
+      "direction": "debit",
+      "balance": 115277.5,
+      "category": "bills",
+      "reference": "832354265692",
+      "page": null
+    },
+    {
+      "date": "2026-01-05",
+      "description": "UPI/P2M/785787502775/RAZORPAY/UPI/ICICI BANK",
+      "amount": 2482.12,
+      "direction": "debit",
+      "balance": 112795.38,
+      "category": "other",
+      "reference": "785787502775",
+      "page": null
+    },
+    {
+      "date": "2026-01-06",
+      "description": "UPI/P2M/452352500529/SWIGGY/UPI/HDFC BANK",
+      "amount": 1007.79,
+      "direction": "debit",
+      "balance": 111787.59,
+      "category": "food",
+      "reference": "452352500529",
+      "page": null
+    },
+    {
+      "date": "2026-01-06",
+      "description": "UPI/P2M/632878298513/SWIGGY/UPI/YES BANK",
+      "amount": 663.54,
+      "direction": "debit",
+      "balance": 111124.05,
+      "category": "food",
+      "reference": "632878298513",
+      "page": null
+    },
+    {
+      "date": "2026-01-07",
+      "description": "UPI/P2M/793696254046/BLINKIT/UPI/YES BANK",
+      "amount": 1275.08,
+      "direction": "debit",
+      "balance": 109848.97,
+      "category": "food",
+      "reference": "793696254046",
+      "page": null
+    },
+    {
+      "date": "2026-01-07",
+      "description": "UPI/P2M/275011385374/ZOMATO/UPI/PAYTM PAYMENTS BANK",
+      "amount": 530.5,
+      "direction": "debit",
+      "balance": 109318.47,
+      "category": "food",
+      "reference": "275011385374",
+      "page": null
+    },
+    {
+      "date": "2026-01-07",
+      "description": "NACH-DR-BAJAJ FINANCE LTD-LOAN EMI-HDFC7465300379599668",
+      "amount": 2999.0,
+      "direction": "debit",
+      "balance": 106319.47,
+      "category": "bills",
+      "reference": "HDFC7465300379599668",
+      "page": null
+    },
+    {
+      "date": "2026-01-07",
+      "description": "UPI/P2A/186317814838/GAURANG KUNDA/DINNER SPLIT/STATE BANK OF INDIA",
+      "amount": 1250.0,
+      "direction": "debit",
+      "balance": 105069.47,
+      "category": "transfer",
+      "reference": "186317814838",
+      "page": null
+    },
+    {
+      "date": "2026-01-08",
+      "description": "UPI/P2M/515346898892/IRCTC/UPI/ICICI BANK",
+      "amount": 2020.61,
+      "direction": "debit",
+      "balance": 103048.86,
+      "category": "transport",
+      "reference": "515346898892",
+      "page": null
+    },
+    {
+      "date": "2026-01-09",
+      "description": "UPI/P2A/229172354332/WAIDA MANN/TRIP SHARE/YES BANK",
+      "amount": 1650.0,
+      "direction": "debit",
+      "balance": 101398.86,
+      "category": "transfer",
+      "reference": "229172354332",
+      "page": null
+    },
+    {
+      "date": "2026-01-09",
+      "description": "UPI/P2M/805840090466/SWIGGY INSTAMART/UPI/HDFC BANK",
+      "amount": 774.97,
+      "direction": "debit",
+      "balance": 100623.89,
+      "category": "food",
+      "reference": "805840090466",
+      "page": null
+    },
+    {
+      "date": "2026-01-10",
+      "description": "UPI/P2M/743341803726/AMAZON PAY/UPI/AXIS BANK",
+      "amount": 1538.13,
+      "direction": "debit",
+      "balance": 99085.76,
+      "category": "bills",
+      "reference": "743341803726",
+      "page": null
+    },
+    {
+      "date": "2026-01-10",
+      "description": "UPI/P2M/656003437291/RAPIDO/UPI/HDFC BANK",
+      "amount": 79.76,
+      "direction": "debit",
+      "balance": 99006.0,
+      "category": "transport",
+      "reference": "656003437291",
+      "page": null
+    },
+    {
+      "date": "2026-01-11",
+      "description": "ECOM PUR/NYKAA/NEW DELHI",
+      "amount": 772.1,
+      "direction": "debit",
+      "balance": 98233.9,
+      "category": "shopping",
+      "reference": "910318321305",
+      "page": null
+    },
+    {
+      "date": "2026-01-12",
+      "description": "UPI/P2M/624152027043/SWIGGY/UPI/ICICI BANK",
+      "amount": 558.01,
+      "direction": "debit",
+      "balance": 97675.89,
+      "category": "food",
+      "reference": "624152027043",
+      "page": null
+    },
+    {
+      "date": "2026-01-12",
+      "description": "UPI/P2A/598694624619/WAIDA MANN/MOVIE TICKETS/YES BANK",
+      "amount": 2000.0,
+      "direction": "debit",
+      "balance": 95675.89,
+      "category": "transfer",
+      "reference": "598694624619",
+      "page": null
+    },
+    {
+      "date": "2026-01-12",
+      "description": "UPI/P2M/124570412204/AJIO/UPI/AXIS BANK",
+      "amount": 1912.67,
+      "direction": "credit",
+      "balance": 97588.56,
+      "category": "income",
+      "reference": "124570412204",
+      "page": null
+    },
+    {
+      "date": "2026-01-14",
+      "description": "UPI/P2M/836374698398/SWIGGY/UPI/PAYTM PAYMENTS BANK",
+      "amount": 353.48,
+      "direction": "debit",
+      "balance": 97235.08,
+      "category": "food",
+      "reference": "836374698398",
+      "page": null
+    },
+    {
+      "date": "2026-01-15",
+      "description": "UPI/P2M/680922413401/JIO/UPI/YES BANK",
+      "amount": 349.0,
+      "direction": "debit",
+      "balance": 96886.08,
+      "category": "bills",
+      "reference": "680922413401",
+      "page": null
+    },
+    {
+      "date": "2026-01-17",
+      "description": "IMPS/P2A/538028184436/WRIDDHISH HAYER/SELF",
+      "amount": 5000.0,
+      "direction": "debit",
+      "balance": 91886.08,
+      "category": "transfer",
+      "reference": "538028184436",
+      "page": null
+    },
+    {
+      "date": "2026-01-17",
+      "description": "UPI/P2M/515216916334/SWIGGY/UPI/AXIS BANK",
+      "amount": 692.78,
+      "direction": "debit",
+      "balance": 91193.3,
+      "category": "food",
+      "reference": "515216916334",
+      "page": null
+    },
+    {
+      "date": "2026-01-18",
+      "description": "UPI/P2M/833755841861/BLINKIT/UPI/YES BANK",
+      "amount": 549.7,
+      "direction": "debit",
+      "balance": 90643.6,
+      "category": "food",
+      "reference": "833755841861",
+      "page": null
+    },
+    {
+      "date": "2026-01-18",
+      "description": "UPI/P2M/263877046009/ZOMATO/UPI/ICICI BANK",
+      "amount": 647.68,
+      "direction": "debit",
+      "balance": 89995.92,
+      "category": "food",
+      "reference": "263877046009",
+      "page": null
+    },
+    {
+      "date": "2026-01-18",
+      "description": "ECOM PUR/AMAZON/MUMBAI",
+      "amount": 7596.5,
+      "direction": "debit",
+      "balance": 82399.42,
+      "category": "shopping",
+      "reference": "267616889899",
+      "page": null
+    },
+    {
+      "date": "2026-01-18",
+      "description": "UPI/P2M/225163462801/CRED CLUB/UPI/AXIS BANK",
+      "amount": 4377.77,
+      "direction": "debit",
+      "balance": 78021.65,
+      "category": "transfer",
+      "reference": "225163462801",
+      "page": null
+    },
+    {
+      "date": "2026-01-20",
+      "description": "ECOM PUR/MEESHO/BANGALORE",
+      "amount": 259.21,
+      "direction": "debit",
+      "balance": 77762.44,
+      "category": "shopping",
+      "reference": "973553477563",
+      "page": null
+    },
+    {
+      "date": "2026-01-21",
+      "description": "UPI/P2M/499393396163/ZEPTO/UPI/AXIS BANK",
+      "amount": 659.09,
+      "direction": "debit",
+      "balance": 77103.35,
+      "category": "food",
+      "reference": "499393396163",
+      "page": null
+    },
+    {
+      "date": "2026-01-21",
+      "description": "ECOM PUR/MYNTRA/GURGAON",
+      "amount": 2621.57,
+      "direction": "debit",
+      "balance": 74481.78,
+      "category": "shopping",
+      "reference": "818360384088",
+      "page": null
+    },
+    {
+      "date": "2026-01-23",
+      "description": "ECOM PUR/AMAZON/BANGALORE",
+      "amount": 4992.7,
+      "direction": "debit",
+      "balance": 69489.08,
+      "category": "shopping",
+      "reference": "900421170722",
+      "page": null
+    },
+    {
+      "date": "2026-01-24",
+      "description": "UPI/P2M/200866667780/SWIGGY/UPI/AXIS BANK",
+      "amount": 923.92,
+      "direction": "debit",
+      "balance": 68565.16,
+      "category": "food",
+      "reference": "200866667780",
+      "page": null
+    },
+    {
+      "date": "2026-01-25",
+      "description": "UPI/P2M/594864705424/OLA/UPI/PAYTM PAYMENTS BANK",
+      "amount": 426.68,
+      "direction": "debit",
+      "balance": 68138.48,
+      "category": "transport",
+      "reference": "594864705424",
+      "page": null
+    },
+    {
+      "date": "2026-01-25",
+      "description": "UPI/P2M/938853487015/UBER/UPI/HDFC BANK",
+      "amount": 597.6,
+      "direction": "debit",
+      "balance": 67540.88,
+      "category": "transport",
+      "reference": "938853487015",
+      "page": null
+    },
+    {
+      "date": "2026-01-26",
+      "description": "UPI/P2M/489669554075/SWIGGY/UPI/AXIS BANK",
+      "amount": 1109.34,
+      "direction": "debit",
+      "balance": 66431.54,
+      "category": "food",
+      "reference": "489669554075",
+      "page": null
+    },
+    {
+      "date": "2026-01-26",
+      "description": "UPI/P2M/183463819989/BLINKIT/UPI/HDFC BANK",
+      "amount": 756.88,
+      "direction": "debit",
+      "balance": 65674.66,
+      "category": "food",
+      "reference": "183463819989",
+      "page": null
+    },
+    {
+      "date": "2026-01-26",
+      "description": "UPI/P2M/399971789589/SWIGGY/UPI/ICICI BANK",
+      "amount": 941.79,
+      "direction": "debit",
+      "balance": 64732.87,
+      "category": "food",
+      "reference": "399971789589",
+      "page": null
+    },
+    {
+      "date": "2026-01-26",
+      "description": "UPI/P2M/924085441366/UBER/UPI/YES BANK",
+      "amount": 408.83,
+      "direction": "debit",
+      "balance": 64324.04,
+      "category": "transport",
+      "reference": "924085441366",
+      "page": null
+    },
+    {
+      "date": "2026-01-28",
+      "description": "ECOM PUR/AMAZON/NEW DELHI",
+      "amount": 6762.95,
+      "direction": "debit",
+      "balance": 57561.09,
+      "category": "shopping",
+      "reference": "295505477209",
+      "page": null
+    },
+    {
+      "date": "2026-01-29",
+      "description": "UPI/P2M/403898222933/BLINKIT/UPI/ICICI BANK",
+      "amount": 2386.05,
+      "direction": "debit",
+      "balance": 55175.04,
+      "category": "food",
+      "reference": "403898222933",
+      "page": null
+    },
+    {
+      "date": "2026-01-29",
+      "description": "UPI/P2M/636305963312/BIGBASKET/UPI/PAYTM PAYMENTS BANK",
+      "amount": 1352.55,
+      "direction": "debit",
+      "balance": 53822.49,
+      "category": "food",
+      "reference": "636305963312",
+      "page": null
+    },
+    {
+      "date": "2026-01-29",
+      "description": "UPI/P2M/940474047149/OLA/UPI/AXIS BANK",
+      "amount": 230.58,
+      "direction": "debit",
+      "balance": 53591.91,
+      "category": "transport",
+      "reference": "940474047149",
+      "page": null
+    },
+    {
+      "date": "2026-01-30",
+      "description": "UPI/P2M/679929835124/SWIGGY/UPI/HDFC BANK",
+      "amount": 667.63,
+      "direction": "debit",
+      "balance": 52924.28,
+      "category": "food",
+      "reference": "679929835124",
+      "page": null
+    },
+    {
+      "date": "2026-01-31",
+      "description": "UPI/P2M/284392408005/SWIGGY/UPI/AXIS BANK",
+      "amount": 607.34,
+      "direction": "debit",
+      "balance": 52316.94,
+      "category": "food",
+      "reference": "284392408005",
+      "page": null
+    },
+    {
+      "date": "2026-01-31",
+      "description": "UPI/P2M/575476253958/SWIGGY INSTAMART/UPI/YES BANK",
+      "amount": 1440.27,
+      "direction": "debit",
+      "balance": 50876.67,
+      "category": "food",
+      "reference": "575476253958",
+      "page": null
+    },
+    {
+      "date": "2026-01-31",
+      "description": "SB:INT CREDIT:01-01-2026 TO 31-01-2026",
+      "amount": 133.47,
+      "direction": "credit",
+      "balance": 51010.14,
+      "category": "income",
+      "reference": "940209394756",
+      "page": null
+    }
+  ],
+  "validation": null,
+  "analytics": null,
+  "anomalies": null,
+  "summary": null,
+  "meta": {
+    "source": "simulated",
+    "persona": "salaried_professional",
+    "seed": 303,
+    "narration_style": "axis",
+    "ambiguous_rows": [
+      {
+        "index": 7,
+        "reference": "832354265692",
+        "description": "UPI/P2A/832354265692/AARNA VARTY/UPI/AXIS BANK",
+        "type": "rent_to_person",
+        "label": "bills",
+        "acceptable": [],
+        "reason": "Rent: the same Rs 22,000 paid to the same person on the 5th of every month. The narration has only a person's name and no 'rent', so it looks like a transfer to a friend. The repeating amount, date and payee are the only clues. Rent counts as bills under CONVENTIONS."
+      },
+      {
+        "index": 8,
+        "reference": "785787502775",
+        "description": "UPI/P2M/785787502775/RAZORPAY/UPI/ICICI BANK",
+        "type": "payment_gateway",
+        "label": "other",
+        "acceptable": [
+          "other"
+        ],
+        "reason": "The narration shows only the payment gateway (RAZORPAY), not the business that was paid. It was actually: cult.fit gym membership, labelled other. The text alone cannot show this, so 'other' is also an acceptable prediction."
+      },
+      {
+        "index": 13,
+        "reference": "HDFC7465300379599668",
+        "description": "NACH-DR-BAJAJ FINANCE LTD-LOAN EMI-HDFC7465300379599668",
+        "type": "loan_emi_nach",
+        "label": "bills",
+        "acceptable": [],
+        "reason": "NACH auto-debit to BAJAJ FINANCE LTD for the same EMI every month. Loan EMIs count as bills under CONVENTIONS. NACH is also used for SIPs and insurance, so the lender's name is what identifies a loan."
+      },
+      {
+        "index": 14,
+        "reference": "186317814838",
+        "description": "UPI/P2A/186317814838/GAURANG KUNDA/DINNER SPLIT/STATE BANK OF INDIA",
+        "type": "p2p_with_memo",
+        "label": "transfer",
+        "acceptable": [],
+        "reason": "UPI payment to a friend with the memo 'DINNER SPLIT'. The memo suggests food, but the money went to a person, not a restaurant. Payments to people count as transfer under CONVENTIONS."
+      },
+      {
+        "index": 17,
+        "reference": "805840090466",
+        "description": "UPI/P2M/805840090466/SWIGGY INSTAMART/UPI/HDFC BANK",
+        "type": "quick_commerce_grocery",
+        "label": "food",
+        "acceptable": [],
+        "reason": "Swiggy Instamart delivers groceries; it is not a restaurant order. The food category includes groceries, so the label is food. 'Swiggy' suggests eating out, and quick-commerce can be mistaken for shopping."
+      },
+      {
+        "index": 18,
+        "reference": "743341803726",
+        "description": "UPI/P2M/743341803726/AMAZON PAY/UPI/AXIS BANK",
+        "type": "wallet_bill_payment",
+        "label": "bills",
+        "acceptable": [],
+        "reason": "BESCOM bill paid through Amazon Pay. Recurs around day 10 with a utility-sized amount, so it is labelled bills. Matching on the merchant name 'AMAZON' would wrongly say shopping."
+      },
+      {
+        "index": 23,
+        "reference": "124570412204",
+        "description": "UPI/P2M/124570412204/AJIO/UPI/AXIS BANK",
+        "type": "merchant_refund",
+        "label": "income",
+        "acceptable": [],
+        "reason": "Credit from Ajio for the same amount as an earlier purchase: a refund. Refunds count as income under CONVENTIONS. The narration names a shopping merchant and does not say 'refund', so only the credit direction shows it is not a purchase."
+      },
+      {
+        "index": 31,
+        "reference": "225163462801",
+        "description": "UPI/P2M/225163462801/CRED CLUB/UPI/AXIS BANK",
+        "type": "credit_card_payment",
+        "label": "transfer",
+        "acceptable": [],
+        "reason": "Credit card bill paid through CRED. This pays off the card; the actual spending happened on the card and belongs to the card statement. Counting it as spending would count those purchases twice, so it is labelled transfer."
+      }
+    ],
+    "rendered_file": "bank_c_jan2026.pdf"
+  }
+}

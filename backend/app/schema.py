@@ -94,3 +94,25 @@ class StatementInfo(BaseModel):
         if self.period_start > self.period_end:
             raise ValueError("period_start must be on or before period_end")
         return self
+
+
+# Categories that are never counted as spending. Transfers move money to people
+# or other accounts (including the holder's own), so counting them would double
+# count or overstate spending. Money-in categories never apply to debits anyway.
+NON_SPENDING_CATEGORIES = frozenset({Category.TRANSFER})
+
+
+class Analytics(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    transaction_count: int = Field(ge=0)
+    total_credits: Money = Field(ge=0, description="Sum of all credit amounts")
+    total_debits: Money = Field(ge=0, description="Sum of all debit amounts")
+    net_flow: Money = Field(description="total_credits - total_debits; negative means more went out than came in")
+    total_spending: Money = Field(
+        ge=0,
+        description="Debits except Transfer; uncategorized debits count as Other. "
+        "Refunds are credits, so they are not netted against spending",
+    )
+    spending_by_category: dict[Category, Money] = Field(description="total_spending split by category")
+    top_spending_categories: list[Category] = Field(max_length=3, description="Highest spending first")

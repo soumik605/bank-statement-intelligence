@@ -1,6 +1,70 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$defs": {
+    "Analytics": {
+      "additionalProperties": false,
+      "properties": {
+        "transaction_count": {
+          "minimum": 0,
+          "title": "Transaction Count",
+          "type": "integer"
+        },
+        "total_credits": {
+          "description": "Sum of all credit amounts",
+          "minimum": 0,
+          "title": "Total Credits",
+          "type": "number"
+        },
+        "total_debits": {
+          "description": "Sum of all debit amounts",
+          "minimum": 0,
+          "title": "Total Debits",
+          "type": "number"
+        },
+        "net_flow": {
+          "description": "total_credits - total_debits; negative means more went out than came in",
+          "title": "Net Flow",
+          "type": "number"
+        },
+        "total_spending": {
+          "description": "Debits except Transfer; uncategorized debits count as Other. Refunds are credits, so they are not netted against spending",
+          "minimum": 0,
+          "title": "Total Spending",
+          "type": "number"
+        },
+        "spending_by_category": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "total_spending split by category",
+          "propertyNames": {
+            "$ref": "#/$defs/Category"
+          },
+          "title": "Spending By Category",
+          "type": "object"
+        },
+        "top_spending_categories": {
+          "description": "Highest spending first",
+          "items": {
+            "$ref": "#/$defs/Category"
+          },
+          "maxItems": 3,
+          "title": "Top Spending Categories",
+          "type": "array"
+        }
+      },
+      "required": [
+        "transaction_count",
+        "total_credits",
+        "total_debits",
+        "net_flow",
+        "total_spending",
+        "spending_by_category",
+        "top_spending_categories"
+      ],
+      "title": "Analytics",
+      "type": "object"
+    },
     "Category": {
       "enum": [
         "Salary",

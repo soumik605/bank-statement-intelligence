@@ -1,4 +1,4 @@
-"""Write docs/schema.json from the Transaction and StatementInfo models.
+"""Write docs/schema.json from the pipeline's output models.
 
 Usage (from backend/):
     uv run python scripts/export_schema.py          # write the file
@@ -13,14 +13,14 @@ from pydantic.json_schema import models_json_schema
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND_DIR))
 
-from app.schema import StatementInfo, Transaction  # noqa: E402
+from app.schema import Analytics, StatementInfo, Transaction  # noqa: E402
 
 OUTPUT = BACKEND_DIR.parent / "docs" / "schema.json"
 
 
 def render() -> str:
     _, schema = models_json_schema(
-        [(Transaction, "validation"), (StatementInfo, "validation")],
+        [(Transaction, "validation"), (StatementInfo, "validation"), (Analytics, "validation")],
         title="Bank statement schema",
     )
     return json.dumps({"$schema": "https://json-schema.org/draft/2020-12/schema", **schema}, indent=2) + "\n"

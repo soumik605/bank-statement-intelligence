@@ -12,6 +12,7 @@ import datetime as dt
 import re
 import statistics
 
+from app.formatting import format_inr
 from app.schema import Category, Transaction
 
 LARGE_DEBIT_MULTIPLE = 3  # a debit above this many times the median debit is large...
@@ -20,7 +21,9 @@ LARGE_DEBIT_MULTIPLE = 3  # a debit above this many times the median debit is la
 LARGE_DEBIT_FLOOR = 10_000
 LARGE_AMOUNT = 50_000  # rupees; the bar for "large" in the round-number and first-payee rules
 ROUND_TO = 1_000  # 50,000 and 85,000 are round; 52,340 is not
-DUPLICATE_WINDOW = dt.timedelta(days=1)  # statements carry dates only, so "within 24 hours" is same or next day
+# Statements carry dates, not times, so only the same date is surely "within 24 hours".
+# Including the next day flagged habits like the same ₹400 lunch order every day.
+DUPLICATE_WINDOW = dt.timedelta(days=0)
 BALANCE_DROP_SHARE = 0.5  # one debit taking out more than half the balance
 
 # Expected, recurring, and big by nature: never flagged just for size.
@@ -35,16 +38,6 @@ def payee_key(description: str) -> str:
     masked phone or account numbers, dates), so repeat payments to one payee match."""
     words = re.split(r"[^A-Z0-9]+", description.upper())
     return " ".join(w for w in words if w and not any(c.isdigit() for c in w))
-
-
-def format_inr(amount: float) -> str:
-    """12345678.5 -> '₹1,23,45,678.50'; whole rupees drop the paise."""
-    whole, paise = f"{abs(amount):.2f}".split(".")
-    head, groups = whole[:-3], [whole[-3:]]
-    while head:
-        groups.insert(0, head[-2:])
-        head = head[:-2]
-    return "₹" + ",".join(groups) + ("" if paise == "00" else f".{paise}")
 
 
 def detect_unusual(transactions: list[Transaction]) -> list[Transaction]:
@@ -81,7 +74,7 @@ def detect_unusual(transactions: list[Transaction]) -> list[Transaction]:
                 if earlier.type == "debit" and earlier.amount == txn.amount and payee_key(earlier.description) == key:
                     found.append(
                         f"Possible duplicate: same amount ({format_inr(txn.amount)}) to the same payee "
-                        f"as on {earlier.date:%d %b}"
+                        f"earlier the same day"
                     )
                     break
 

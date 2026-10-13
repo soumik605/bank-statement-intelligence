@@ -42,14 +42,14 @@ def test_round_number_either_direction():
     assert flags == {"NEFT CR-FAMILY TRUST": "Large round-number amount of ₹85,000 in"}
 
 
-def test_possible_duplicate_within_a_day():
+def test_possible_duplicate_same_day():
     flags = _flags(
         _txn("UPI-SWIGGY-111", 412.5, date="2026-01-18"),
-        _txn("UPI-SWIGGY-222", 412.5, date="2026-01-19"),
+        _txn("UPI-SWIGGY-222", 412.5, date="2026-01-18"),
         _txn("UPI-ZOMATO-333", 300, date="2026-01-18"),
-        _txn("UPI-ZOMATO-444", 300, date="2026-01-21"),  # 3 days later: not a duplicate
+        _txn("UPI-ZOMATO-444", 300, date="2026-01-19"),  # next day: could be a daily habit, not flagged
     )
-    assert flags == {"UPI-SWIGGY-222": "Possible duplicate: same amount (₹412.50) to the same payee as on 18 Jan"}
+    assert flags == {"UPI-SWIGGY-222": "Possible duplicate: same amount (₹412.50) to the same payee earlier the same day"}
 
 
 def test_first_time_payee_large_amount():

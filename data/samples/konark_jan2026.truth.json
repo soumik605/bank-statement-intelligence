@@ -1,0 +1,300 @@
+{
+  "source_file": "konark_jan2026.csv",
+  "statement": {
+    "bank_name": "Konark Co-operative Bank Ltd.",
+    "account_number": "XXXX XXXX 7710",
+    "holder_name": "Rohan Kulkarni",
+    "period_start": "2026-01-01",
+    "period_end": "2026-01-31"
+  },
+  "opening_balance": 620400.0,
+  "closing_balance": 160435.06,
+  "rows": [
+    {
+      "transaction": {
+        "date": "2026-01-01",
+        "description": "BY NEFT/BLUEPEAK LOGISTICS/SAL JAN26",
+        "amount": 92500.0,
+        "type": "credit",
+        "balance": 712900.0
+      },
+      "expected_category": "income",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-03",
+        "description": "TO UPI/SWIGGY/025481459657",
+        "amount": 721.85,
+        "type": "debit",
+        "balance": 712178.15
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-03",
+        "description": "TO UPI/SWIGGY/286021668268",
+        "amount": 334.4,
+        "type": "debit",
+        "balance": 711843.75
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-05",
+        "description": "TO IMPS/430417548783/MEERA JOSHI",
+        "amount": 21000.0,
+        "type": "debit",
+        "balance": 690843.75
+      },
+      "expected_category": "bills",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-06",
+        "description": "TO ATM WDL/PUNE CAMP/482895",
+        "amount": 5000.0,
+        "type": "debit",
+        "balance": 685843.75
+      },
+      "expected_category": "cash",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-06",
+        "description": "TO UPI/SWIGGY/119253150587",
+        "amount": 273.96,
+        "type": "debit",
+        "balance": 685569.79
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-06",
+        "description": "TO UPI/9876xxxx/RAMESH",
+        "amount": 2200.0,
+        "type": "debit",
+        "balance": 683369.79
+      },
+      "expected_category": "transfer",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Masked phone digits look like an amount or reference; it's a payment to a person (transfer), not a merchant"
+    },
+    {
+      "transaction": {
+        "date": "2026-01-11",
+        "description": "TO UPI/AMAZON/841100313273",
+        "amount": 1638.61,
+        "type": "debit",
+        "balance": 681731.18
+      },
+      "expected_category": "shopping",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-11",
+        "description": "TO UPI/SWIGGY/845187700518",
+        "amount": 425.16,
+        "type": "debit",
+        "balance": 681306.02
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-11",
+        "description": "TO UPI/SWIGGY/502005016289",
+        "amount": 702.5,
+        "type": "debit",
+        "balance": 680603.52
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-12",
+        "description": "TO UPI/UBER/194646906398",
+        "amount": 624.16,
+        "type": "debit",
+        "balance": 679979.36
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-13",
+        "description": "BY UPI/AMZN REFUND/RF0091",
+        "amount": 849.0,
+        "type": "credit",
+        "balance": 680828.36
+      },
+      "expected_category": "income",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Amazon keyword suggests shopping, but it's a credit: a refund is income, not spending"
+    },
+    {
+      "transaction": {
+        "date": "2026-01-14",
+        "description": "TO BBPS/MSEDCL/959526",
+        "amount": 2524.21,
+        "type": "debit",
+        "balance": 678304.15
+      },
+      "expected_category": "bills",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-15",
+        "description": "TO UPI/UBER/774329751463",
+        "amount": 321.43,
+        "type": "debit",
+        "balance": 677982.72
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-16",
+        "description": "TO UPI/UBER/967309740525",
+        "amount": 107.39,
+        "type": "debit",
+        "balance": 677875.33
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-16",
+        "description": "TO TRF/OWN A/C XX9012/SAVINGS",
+        "amount": 15000.0,
+        "type": "debit",
+        "balance": 662875.33
+      },
+      "expected_category": "transfer",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Moving money to the holder's own savings account; not an expense"
+    },
+    {
+      "transaction": {
+        "date": "2026-01-17",
+        "description": "TO UPI/DMART/896552562153",
+        "amount": 1255.37,
+        "type": "debit",
+        "balance": 661619.96
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-22",
+        "description": "TO RTGS/HOMESTEAD BUILDERS/FLAT BOOKING",
+        "amount": 500000.0,
+        "type": "debit",
+        "balance": 161619.96
+      },
+      "expected_category": "transfer",
+      "expected_unusual": true,
+      "expected_unusual_reason": "One-off outgoing transfer of 5,00,000.00, about 5.4x the monthly salary",
+      "trap": "One-off amount far above anything else in the statement"
+    },
+    {
+      "transaction": {
+        "date": "2026-01-23",
+        "description": "TO UPI/UBER/345877556359",
+        "amount": 196.45,
+        "type": "debit",
+        "balance": 161423.51
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-25",
+        "description": "TO UPI/UBER/929109980955",
+        "amount": 269.45,
+        "type": "debit",
+        "balance": 161154.06
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-27",
+        "description": "TO UPI/SWIGGY/425937730238",
+        "amount": 289.23,
+        "type": "debit",
+        "balance": 160864.83
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-28",
+        "description": "TO UPI/UBER/360636821378",
+        "amount": 429.77,
+        "type": "debit",
+        "balance": 160435.06
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    }
+  ]
+}

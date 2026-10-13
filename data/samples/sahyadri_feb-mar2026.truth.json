@@ -1,0 +1,469 @@
+{
+  "source_file": "sahyadri_feb-mar2026.pdf",
+  "statement": {
+    "bank_name": "Sahyadri Gramin Bank",
+    "account_number": "XXXXXX9012",
+    "holder_name": "Thomas Varghese",
+    "period_start": "2026-02-01",
+    "period_end": "2026-03-31"
+  },
+  "opening_balance": 72815.4,
+  "closing_balance": 993673.43,
+  "rows": [
+    {
+      "transaction": {
+        "date": "2026-02-01",
+        "description": "Salary Credit - Coastline Shipping Co - FEB26",
+        "amount": 84000.0,
+        "type": "credit",
+        "balance": 156815.4
+      },
+      "expected_category": "income",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-03",
+        "description": "Rent Transfer to Kavita Deshpande",
+        "amount": 18500.0,
+        "type": "debit",
+        "balance": 138315.4
+      },
+      "expected_category": "bills",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-03",
+        "description": "ATM Cash Wdl - Kochi MG Road",
+        "amount": 2000.0,
+        "type": "debit",
+        "balance": 136315.4
+      },
+      "expected_category": "cash",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-05",
+        "description": "UPI/9876xxxx/RAMESH",
+        "amount": 1500.0,
+        "type": "debit",
+        "balance": 134815.4
+      },
+      "expected_category": "transfer",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Masked phone digits look like an amount or reference; it's a payment to a person (transfer), not a merchant"
+    },
+    {
+      "transaction": {
+        "date": "2026-02-10",
+        "description": "Electricity Bill - KSEB - Cons 515142",
+        "amount": 2498.27,
+        "type": "debit",
+        "balance": 132317.13
+      },
+      "expected_category": "bills",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-11",
+        "description": "UPI/549751088884/Swiggy",
+        "amount": 554.12,
+        "type": "debit",
+        "balance": 131763.01
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-11",
+        "description": "UPI/505016011490/Uber India",
+        "amount": 129.32,
+        "type": "debit",
+        "balance": 131633.69
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-15",
+        "description": "UPI/972604748002/Uber India",
+        "amount": 604.93,
+        "type": "debit",
+        "balance": 131028.76
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-16",
+        "description": "UPI/253854571453/Reliance Fresh",
+        "amount": 2055.1,
+        "type": "debit",
+        "balance": 128973.66
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-17",
+        "description": "UPI/297834958418/Amazon India",
+        "amount": 1603.73,
+        "type": "debit",
+        "balance": 127369.93
+      },
+      "expected_category": "shopping",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-17",
+        "description": "UPI/618201042486/Swiggy",
+        "amount": 590.87,
+        "type": "debit",
+        "balance": 126779.06
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-18",
+        "description": "UPI/188273884861/Swiggy",
+        "amount": 466.56,
+        "type": "debit",
+        "balance": 126312.5
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-19",
+        "description": "AMZN REFUND",
+        "amount": 649.0,
+        "type": "credit",
+        "balance": 126961.5
+      },
+      "expected_category": "income",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Amazon keyword suggests shopping, but it's a credit: a refund is income, not spending"
+    },
+    {
+      "transaction": {
+        "date": "2026-02-22",
+        "description": "UPI/263874002829/Swiggy",
+        "amount": 521.06,
+        "type": "debit",
+        "balance": 126440.44
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-23",
+        "description": "UPI/077026001501/Uber India",
+        "amount": 121.55,
+        "type": "debit",
+        "balance": 126318.89
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-02-25",
+        "description": "UPI/571755382382/Swiggy",
+        "amount": 356.76,
+        "type": "debit",
+        "balance": 125962.13
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-01",
+        "description": "Salary Credit - Coastline Shipping Co - MAR26",
+        "amount": 84000.0,
+        "type": "credit",
+        "balance": 209962.13
+      },
+      "expected_category": "income",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-01",
+        "description": "UPI/010168863638/Swiggy",
+        "amount": 417.76,
+        "type": "debit",
+        "balance": 209544.37
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-02",
+        "description": "NEFT-SELF-SAVINGS",
+        "amount": 20000.0,
+        "type": "debit",
+        "balance": 189544.37
+      },
+      "expected_category": "transfer",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Moving money to the holder's own savings account; not an expense"
+    },
+    {
+      "transaction": {
+        "date": "2026-03-03",
+        "description": "Rent Transfer to Kavita Deshpande",
+        "amount": 18500.0,
+        "type": "debit",
+        "balance": 171044.37
+      },
+      "expected_category": "bills",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-05",
+        "description": "ATM Cash Wdl - Kochi MG Road",
+        "amount": 3000.0,
+        "type": "debit",
+        "balance": 168044.37
+      },
+      "expected_category": "cash",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-05",
+        "description": "UPI/9876xxxx/RAMESH",
+        "amount": 1500.0,
+        "type": "debit",
+        "balance": 166544.37
+      },
+      "expected_category": "transfer",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Masked phone digits look like an amount or reference; it's a payment to a person (transfer), not a merchant"
+    },
+    {
+      "transaction": {
+        "date": "2026-03-07",
+        "description": "UPI/861257964133/Swiggy",
+        "amount": 552.88,
+        "type": "debit",
+        "balance": 165991.49
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-08",
+        "description": "UPI/325791414085/Amazon India",
+        "amount": 3219.77,
+        "type": "debit",
+        "balance": 162771.72
+      },
+      "expected_category": "shopping",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-11",
+        "description": "Electricity Bill - KSEB - Cons 543481",
+        "amount": 1591.49,
+        "type": "debit",
+        "balance": 161180.23
+      },
+      "expected_category": "bills",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-13",
+        "description": "UPI/208308329128/Reliance Fresh",
+        "amount": 3759.6,
+        "type": "debit",
+        "balance": 157420.63
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-14",
+        "description": "UPI/720118570274/Swiggy",
+        "amount": 485.92,
+        "type": "debit",
+        "balance": 156934.71
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-15",
+        "description": "UPI/205405214010/Uber India",
+        "amount": 605.13,
+        "type": "debit",
+        "balance": 156329.58
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-17",
+        "description": "UPI/639799533149/Swiggy",
+        "amount": 833.61,
+        "type": "debit",
+        "balance": 155495.97
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-19",
+        "description": "UPI/028771004214/Uber India",
+        "amount": 519.72,
+        "type": "debit",
+        "balance": 154976.25
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-20",
+        "description": "NEFT CR-LIFECOVER INSURANCE-POLICY MATURITY",
+        "amount": 840000.0,
+        "type": "credit",
+        "balance": 994976.25
+      },
+      "expected_category": "income",
+      "expected_unusual": true,
+      "expected_unusual_reason": "One-off incoming credit of 8,40,000.00, about 10x the monthly salary",
+      "trap": "One-off amount far above anything else in the statement"
+    },
+    {
+      "transaction": {
+        "date": "2026-03-25",
+        "description": "UPI/811471692733/Swiggy",
+        "amount": 291.49,
+        "type": "debit",
+        "balance": 994684.76
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-28",
+        "description": "UPI/667162186320/Swiggy",
+        "amount": 245.64,
+        "type": "debit",
+        "balance": 994439.12
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-28",
+        "description": "UPI/704540702238/Uber India",
+        "amount": 392.84,
+        "type": "debit",
+        "balance": 994046.28
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-29",
+        "description": "UPI/780842462350/Swiggy",
+        "amount": 372.85,
+        "type": "debit",
+        "balance": 993673.43
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    }
+  ]
+}

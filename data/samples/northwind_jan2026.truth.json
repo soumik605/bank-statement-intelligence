@@ -1,0 +1,339 @@
+{
+  "source_file": "northwind_jan2026.csv",
+  "statement": {
+    "bank_name": "Northwind Bank",
+    "account_number": "XXXXXXXX4821",
+    "holder_name": "Ananya Rao",
+    "period_start": "2026-01-01",
+    "period_end": "2026-01-31"
+  },
+  "opening_balance": 48250.75,
+  "closing_balance": 493504.65,
+  "rows": [
+    {
+      "transaction": {
+        "date": "2026-01-01",
+        "description": "NEFT CR-ACME TECHNOLOGIES PVT LTD-SALARY JAN26",
+        "amount": 115000.0,
+        "type": "credit",
+        "balance": 163250.75
+      },
+      "expected_category": "income",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-03",
+        "description": "IMPS-183655527787-PRAKASH NAIR-RENT",
+        "amount": 28000.0,
+        "type": "debit",
+        "balance": 135250.75
+      },
+      "expected_category": "bills",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-03",
+        "description": "UPI-SWIGGY-965709819100",
+        "amount": 625.64,
+        "type": "debit",
+        "balance": 134625.11
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-04",
+        "description": "UPI-SWIGGY-117746928779",
+        "amount": 801.88,
+        "type": "debit",
+        "balance": 133823.23
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-05",
+        "description": "UPI-UBER INDIA-764834842008",
+        "amount": 472.05,
+        "type": "debit",
+        "balance": 133351.18
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-07",
+        "description": "UPI-UBER INDIA-294733521340",
+        "amount": 157.84,
+        "type": "debit",
+        "balance": 133193.34
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-07",
+        "description": "UPI/9876xxxx/RAMESH",
+        "amount": 1500.0,
+        "type": "debit",
+        "balance": 131693.34
+      },
+      "expected_category": "transfer",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Masked phone digits look like an amount or reference; it's a payment to a person (transfer), not a merchant"
+    },
+    {
+      "transaction": {
+        "date": "2026-01-08",
+        "description": "UPI-SWIGGY-246946735683",
+        "amount": 349.17,
+        "type": "debit",
+        "balance": 131344.17
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-12",
+        "description": "UPI-UBER INDIA-236356926070",
+        "amount": 133.11,
+        "type": "debit",
+        "balance": 131211.06
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-12",
+        "description": "AMZN REFUND",
+        "amount": 1299.0,
+        "type": "credit",
+        "balance": 132510.06
+      },
+      "expected_category": "income",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Amazon keyword suggests shopping, but it's a credit: a refund is income, not spending"
+    },
+    {
+      "transaction": {
+        "date": "2026-01-13",
+        "description": "UPI-SWIGGY-988723951234",
+        "amount": 198.95,
+        "type": "debit",
+        "balance": 132311.11
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-14",
+        "description": "BILLPAY-BESCOM-976603",
+        "amount": 2468.26,
+        "type": "debit",
+        "balance": 129842.85
+      },
+      "expected_category": "bills",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-14",
+        "description": "ATW-XXXXXX4821-MG ROAD BANGALORE",
+        "amount": 2000.0,
+        "type": "debit",
+        "balance": 127842.85
+      },
+      "expected_category": "cash",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-14",
+        "description": "UPI-BIGBASKET-650199522897",
+        "amount": 2733.24,
+        "type": "debit",
+        "balance": 125109.61
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-15",
+        "description": "UPI-SWIGGY-843107855642",
+        "amount": 773.9,
+        "type": "debit",
+        "balance": 124335.71
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-15",
+        "description": "NEFT-SELF-SAVINGS",
+        "amount": 25000.0,
+        "type": "debit",
+        "balance": 99335.71
+      },
+      "expected_category": "transfer",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Moving money to the holder's own savings account; not an expense"
+    },
+    {
+      "transaction": {
+        "date": "2026-01-16",
+        "description": "AMAZON PAY INDIA, BANGALORE",
+        "amount": 3094.17,
+        "type": "debit",
+        "balance": 96241.54
+      },
+      "expected_category": "shopping",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-18",
+        "description": "UPI-SWIGGY-604118227731",
+        "amount": 412.5,
+        "type": "debit",
+        "balance": 95829.04
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Same merchant and amount as the next row on the same day; both are real orders, not a duplicate"
+    },
+    {
+      "transaction": {
+        "date": "2026-01-18",
+        "description": "UPI-SWIGGY-604118229054",
+        "amount": 412.5,
+        "type": "debit",
+        "balance": 95416.54
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Same merchant and amount as the previous row; not a duplicate"
+    },
+    {
+      "transaction": {
+        "date": "2026-01-21",
+        "description": "NEFT CR-RAO FAMILY TRUST-GIFT",
+        "amount": 400000.0,
+        "type": "credit",
+        "balance": 495416.54
+      },
+      "expected_category": "transfer",
+      "expected_unusual": true,
+      "expected_unusual_reason": "One-off incoming transfer of 4,00,000.00, about 3.5x the monthly salary",
+      "trap": "One-off amount far above anything else in the statement"
+    },
+    {
+      "transaction": {
+        "date": "2026-01-24",
+        "description": "UPI-SWIGGY-707215871188",
+        "amount": 298.29,
+        "type": "debit",
+        "balance": 495118.25
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-25",
+        "description": "UPI-UBER INDIA-206941931793",
+        "amount": 517.83,
+        "type": "debit",
+        "balance": 494600.42
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-26",
+        "description": "UPI-UBER INDIA-265647211442",
+        "amount": 130.16,
+        "type": "debit",
+        "balance": 494470.26
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-27",
+        "description": "UPI-SWIGGY-351811990754",
+        "amount": 824.67,
+        "type": "debit",
+        "balance": 493645.59
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-01-28",
+        "description": "UPI-UBER INDIA-661757902722",
+        "amount": 140.94,
+        "type": "debit",
+        "balance": 493504.65
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    }
+  ]
+}

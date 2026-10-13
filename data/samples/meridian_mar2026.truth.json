@@ -1,0 +1,274 @@
+{
+  "source_file": "meridian_mar2026.pdf",
+  "statement": {
+    "bank_name": "Meridian Bank",
+    "account_number": "******3307",
+    "holder_name": "Farah Siddiqui",
+    "period_start": "2026-03-01",
+    "period_end": "2026-03-31"
+  },
+  "opening_balance": 310000.0,
+  "closing_balance": 84375.27,
+  "rows": [
+    {
+      "transaction": {
+        "date": "2026-03-01",
+        "description": "NEFT CR-MRDN0000123-ORBIT ANALYTICS PRIVATE LIMITED-SALARY FOR MARCH 2026",
+        "amount": 138000.0,
+        "type": "credit",
+        "balance": 448000.0
+      },
+      "expected_category": "income",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-03",
+        "description": "UPI 622045817226 SWIGGY ORDER",
+        "amount": 485.18,
+        "type": "debit",
+        "balance": 447514.82
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-04",
+        "description": "STANDING INSTRUCTION RENT PAYMENT TO RAJIV MENON A/C XXXXXX5521",
+        "amount": 35000.0,
+        "type": "debit",
+        "balance": 412514.82
+      },
+      "expected_category": "bills",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-06",
+        "description": "UPI 380383478221 UBER RIDE",
+        "amount": 601.04,
+        "type": "debit",
+        "balance": 411913.78
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-08",
+        "description": "UPI 037835761157 AMAZON SELLER SERVICES",
+        "amount": 1160.3,
+        "type": "debit",
+        "balance": 410753.48
+      },
+      "expected_category": "shopping",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-09",
+        "description": "UPI 219883716683 UBER RIDE",
+        "amount": 481.0,
+        "type": "debit",
+        "balance": 410272.48
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-09",
+        "description": "UPI/9876xxxx/RAMESH",
+        "amount": 1800.0,
+        "type": "debit",
+        "balance": 408472.48
+      },
+      "expected_category": "transfer",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Masked phone digits look like an amount or reference; it's a payment to a person (transfer), not a merchant"
+    },
+    {
+      "transaction": {
+        "date": "2026-03-11",
+        "description": "AMZN REFUND",
+        "amount": 2499.0,
+        "type": "credit",
+        "balance": 410971.48
+      },
+      "expected_category": "income",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Amazon keyword suggests shopping, but it's a credit: a refund is income, not spending"
+    },
+    {
+      "transaction": {
+        "date": "2026-03-12",
+        "description": "UPI 254364090422 SWIGGY ORDER",
+        "amount": 233.83,
+        "type": "debit",
+        "balance": 410737.65
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-13",
+        "description": "UPI 050503648225 SWIGGY ORDER",
+        "amount": 596.26,
+        "type": "debit",
+        "balance": 410141.39
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-14",
+        "description": "BILL PAYMENT TATA POWER DDL CA NO 215154",
+        "amount": 2434.1,
+        "type": "debit",
+        "balance": 407707.29
+      },
+      "expected_category": "bills",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-15",
+        "description": "CASH WITHDRAWAL ATM CONNAUGHT PLACE 356447",
+        "amount": 2000.0,
+        "type": "debit",
+        "balance": 405707.29
+      },
+      "expected_category": "cash",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-15",
+        "description": "UPI 844829959057 UBER RIDE",
+        "amount": 364.14,
+        "type": "debit",
+        "balance": 405343.15
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-17",
+        "description": "NEFT-SELF-SAVINGS",
+        "amount": 40000.0,
+        "type": "debit",
+        "balance": 365343.15
+      },
+      "expected_category": "transfer",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": "Moving money to the holder's own savings account; not an expense"
+    },
+    {
+      "transaction": {
+        "date": "2026-03-19",
+        "description": "UPI 989642364346 UBER RIDE",
+        "amount": 383.76,
+        "type": "debit",
+        "balance": 364959.39
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-20",
+        "description": "UPI 157682542931 SWIGGY ORDER",
+        "amount": 257.87,
+        "type": "debit",
+        "balance": 364701.52
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-24",
+        "description": "UPI 320876359436 BLINKIT GROCERY",
+        "amount": 4007.95,
+        "type": "debit",
+        "balance": 360693.57
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-24",
+        "description": "IMPS-TRANSFER TO VIKRAM SHAH-PERSONAL LOAN",
+        "amount": 275000.0,
+        "type": "debit",
+        "balance": 85693.57
+      },
+      "expected_category": "transfer",
+      "expected_unusual": true,
+      "expected_unusual_reason": "One-off outgoing transfer of 2,75,000.00, about 2x the monthly salary",
+      "trap": "One-off amount far above anything else in the statement"
+    },
+    {
+      "transaction": {
+        "date": "2026-03-28",
+        "description": "UPI 098532265929 UBER RIDE",
+        "amount": 554.52,
+        "type": "debit",
+        "balance": 85139.05
+      },
+      "expected_category": "transport",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    },
+    {
+      "transaction": {
+        "date": "2026-03-30",
+        "description": "UPI 308983201948 SWIGGY ORDER",
+        "amount": 763.78,
+        "type": "debit",
+        "balance": 84375.27
+      },
+      "expected_category": "food",
+      "expected_unusual": false,
+      "expected_unusual_reason": null,
+      "trap": null
+    }
+  ]
+}

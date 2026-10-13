@@ -1,0 +1,1224 @@
+{
+  "statement": {
+    "bank_name": "Sample Bank",
+    "account_holder": "ARYAN MAHARAJ",
+    "account_number": "XXXXXXXX4821",
+    "currency": "INR",
+    "period_start": "2026-07-01",
+    "period_end": "2026-09-30",
+    "opening_balance": 40000.0,
+    "closing_balance": 73667.89
+  },
+  "transactions": [
+    {
+      "date": "2026-07-01",
+      "description": "BY TRANSFER-NEFT*ICIC0246316*ICICN214832269481*ACME TECH",
+      "amount": 85000.0,
+      "direction": "credit",
+      "balance": 125000.0,
+      "category": "income",
+      "reference": "ICICN214832269481",
+      "page": null
+    },
+    {
+      "date": "2026-07-02",
+      "description": "UPI/DR/464469358785/OLA/YESB/ola@ybl",
+      "amount": 276.18,
+      "direction": "debit",
+      "balance": 124723.82,
+      "category": "transport",
+      "reference": "464469358785",
+      "page": null
+    },
+    {
+      "date": "2026-07-03",
+      "description": "UPI/DR/787851215839/BLINKIT/YESB/blinkit@ybl",
+      "amount": 1472.86,
+      "direction": "debit",
+      "balance": 123250.96,
+      "category": "food",
+      "reference": "787851215839",
+      "page": null
+    },
+    {
+      "date": "2026-07-03",
+      "description": "ECOM PUR/4821/FLIPKART/BANGALORE",
+      "amount": 5605.61,
+      "direction": "debit",
+      "balance": 117645.35,
+      "category": "shopping",
+      "reference": "176519237216",
+      "page": null
+    },
+    {
+      "date": "2026-07-03",
+      "description": "UPI/DR/351487177987/OLA/PYTM/ola@paytm",
+      "amount": 322.24,
+      "direction": "debit",
+      "balance": 117323.11,
+      "category": "transport",
+      "reference": "351487177987",
+      "page": null
+    },
+    {
+      "date": "2026-07-04",
+      "description": "UPI/DR/395282771728/ZOMATO/PYTM/zomato@paytm",
+      "amount": 686.98,
+      "direction": "debit",
+      "balance": 116636.13,
+      "category": "food",
+      "reference": "395282771728",
+      "page": null
+    },
+    {
+      "date": "2026-07-04",
+      "description": "ATM WDL/BENGALURU/S1AW6804",
+      "amount": 3500.0,
+      "direction": "debit",
+      "balance": 113136.13,
+      "category": "cash",
+      "reference": "S1AW6804",
+      "page": null
+    },
+    {
+      "date": "2026-07-05",
+      "description": "UPI/DR/914655221101/UDANT DEWAN/UTIB/udant.dewan@okaxis",
+      "amount": 22000.0,
+      "direction": "debit",
+      "balance": 91136.13,
+      "category": "bills",
+      "reference": "914655221101",
+      "page": null
+    },
+    {
+      "date": "2026-07-05",
+      "description": "UPI/DR/390077698664/ZEPTO/PYTM/zepto@paytm",
+      "amount": 571.79,
+      "direction": "debit",
+      "balance": 90564.34,
+      "category": "food",
+      "reference": "390077698664",
+      "page": null
+    },
+    {
+      "date": "2026-07-05",
+      "description": "ECOM PUR/4821/AMAZON/BANGALORE",
+      "amount": 5049.43,
+      "direction": "debit",
+      "balance": 85514.91,
+      "category": "shopping",
+      "reference": "705362105548",
+      "page": null
+    },
+    {
+      "date": "2026-07-05",
+      "description": "UPI/DR/693625626938/AYUSHMAN CHANDER/ICIC/ayushman.chander@okicici",
+      "amount": 2500.0,
+      "direction": "debit",
+      "balance": 83014.91,
+      "category": "transfer",
+      "reference": "693625626938",
+      "page": null
+    },
+    {
+      "date": "2026-07-06",
+      "description": "UPI/DR/607507949295/ZOMATO/UTIB/zomato@axl",
+      "amount": 579.35,
+      "direction": "debit",
+      "balance": 82435.56,
+      "category": "food",
+      "reference": "607507949295",
+      "page": null
+    },
+    {
+      "date": "2026-07-06",
+      "description": "UPI/DR/171281034036/ZOMATO/HDFC/zomato@hdfcbank",
+      "amount": 785.36,
+      "direction": "debit",
+      "balance": 81650.2,
+      "category": "food",
+      "reference": "171281034036",
+      "page": null
+    },
+    {
+      "date": "2026-07-06",
+      "description": "UPI/DR/653930041483/SWIGGY INSTAMART/ICIC/swiggyinstamart@icici",
+      "amount": 1027.81,
+      "direction": "debit",
+      "balance": 80622.39,
+      "category": "food",
+      "reference": "653930041483",
+      "page": null
+    },
+    {
+      "date": "2026-07-07",
+      "description": "IMPS/P2P/550144771997/RUSHIL SAINI",
+      "amount": 500.0,
+      "direction": "debit",
+      "balance": 80122.39,
+      "category": "transfer",
+      "reference": "550144771997",
+      "page": null
+    },
+    {
+      "date": "2026-07-08",
+      "description": "UPI/DR/357076632102/ZEPTO/YESB/zepto@ybl",
+      "amount": 1216.15,
+      "direction": "debit",
+      "balance": 78906.24,
+      "category": "food",
+      "reference": "357076632102",
+      "page": null
+    },
+    {
+      "date": "2026-07-08",
+      "description": "UPI/DR/643354278056/ZEPTO/UTIB/zepto@axl",
+      "amount": 1914.91,
+      "direction": "debit",
+      "balance": 76991.33,
+      "category": "food",
+      "reference": "643354278056",
+      "page": null
+    },
+    {
+      "date": "2026-07-08",
+      "description": "ECOM PUR/4821/AMAZON/MUMBAI",
+      "amount": 1379.31,
+      "direction": "debit",
+      "balance": 75612.02,
+      "category": "shopping",
+      "reference": "726541280440",
+      "page": null
+    },
+    {
+      "date": "2026-07-09",
+      "description": "ECOM PUR/4821/NYKAA/BANGALORE",
+      "amount": 1393.0,
+      "direction": "debit",
+      "balance": 74219.02,
+      "category": "shopping",
+      "reference": "566461768998",
+      "page": null
+    },
+    {
+      "date": "2026-07-10",
+      "description": "UPI/DR/354342113419/BESCOM/YESB/bescom@ybl",
+      "amount": 629.81,
+      "direction": "debit",
+      "balance": 73589.21,
+      "category": "bills",
+      "reference": "354342113419",
+      "page": null
+    },
+    {
+      "date": "2026-07-11",
+      "description": "UPI/DR/984901132451/DOMINOS/YESB/dominos@ybl",
+      "amount": 725.35,
+      "direction": "debit",
+      "balance": 72863.86,
+      "category": "food",
+      "reference": "984901132451",
+      "page": null
+    },
+    {
+      "date": "2026-07-11",
+      "description": "UPI/DR/726820024292/ZOMATO/YESB/zomato@ybl",
+      "amount": 496.32,
+      "direction": "debit",
+      "balance": 72367.54,
+      "category": "food",
+      "reference": "726820024292",
+      "page": null
+    },
+    {
+      "date": "2026-07-12",
+      "description": "UPI/DR/342319992484/BWSSB/PYTM/bwssb@paytm",
+      "amount": 754.26,
+      "direction": "debit",
+      "balance": 71613.28,
+      "category": "bills",
+      "reference": "342319992484",
+      "page": null
+    },
+    {
+      "date": "2026-07-13",
+      "description": "UPI/DR/852562516774/SWIGGY/PYTM/swiggy@paytm",
+      "amount": 423.04,
+      "direction": "debit",
+      "balance": 71190.24,
+      "category": "food",
+      "reference": "852562516774",
+      "page": null
+    },
+    {
+      "date": "2026-07-13",
+      "description": "UPI/DR/388376437635/SWIGGY/HDFC/swiggy@hdfcbank",
+      "amount": 891.21,
+      "direction": "debit",
+      "balance": 70299.03,
+      "category": "food",
+      "reference": "388376437635",
+      "page": null
+    },
+    {
+      "date": "2026-07-13",
+      "description": "UPI/DR/377150435753/STARBUCKS/HDFC/starbucks@hdfcbank",
+      "amount": 457.34,
+      "direction": "debit",
+      "balance": 69841.69,
+      "category": "food",
+      "reference": "377150435753",
+      "page": null
+    },
+    {
+      "date": "2026-07-15",
+      "description": "UPI/DR/128355454532/JIO/PYTM/jio@paytm",
+      "amount": 349.0,
+      "direction": "debit",
+      "balance": 69492.69,
+      "category": "bills",
+      "reference": "128355454532",
+      "page": null
+    },
+    {
+      "date": "2026-07-16",
+      "description": "ECOM PUR/4821/FLIPKART/GURGAON",
+      "amount": 883.84,
+      "direction": "debit",
+      "balance": 68608.85,
+      "category": "shopping",
+      "reference": "499127439409",
+      "page": null
+    },
+    {
+      "date": "2026-07-18",
+      "description": "UPI/DR/893195777447/ZOMATO/YESB/zomato@ybl",
+      "amount": 860.71,
+      "direction": "debit",
+      "balance": 67748.14,
+      "category": "food",
+      "reference": "893195777447",
+      "page": null
+    },
+    {
+      "date": "2026-07-19",
+      "description": "UPI/DR/826046287257/ZOMATO/YESB/zomato@ybl",
+      "amount": 380.22,
+      "direction": "debit",
+      "balance": 67367.92,
+      "category": "food",
+      "reference": "826046287257",
+      "page": null
+    },
+    {
+      "date": "2026-07-19",
+      "description": "UPI/DR/794529888366/NAMMA METRO/YESB/nammametro@ybl",
+      "amount": 545.81,
+      "direction": "debit",
+      "balance": 66822.11,
+      "category": "transport",
+      "reference": "794529888366",
+      "page": null
+    },
+    {
+      "date": "2026-07-22",
+      "description": "UPI/DR/798400899699/BLINKIT/YESB/blinkit@ybl",
+      "amount": 720.49,
+      "direction": "debit",
+      "balance": 66101.62,
+      "category": "food",
+      "reference": "798400899699",
+      "page": null
+    },
+    {
+      "date": "2026-07-24",
+      "description": "UPI/DR/496852403351/SWIGGY INSTAMART/PYTM/swiggyinstamart@paytm",
+      "amount": 1216.2,
+      "direction": "debit",
+      "balance": 64885.42,
+      "category": "food",
+      "reference": "496852403351",
+      "page": null
+    },
+    {
+      "date": "2026-07-25",
+      "description": "UPI/DR/578001943304/ZEPTO/YESB/zepto@ybl",
+      "amount": 1014.05,
+      "direction": "debit",
+      "balance": 63871.37,
+      "category": "food",
+      "reference": "578001943304",
+      "page": null
+    },
+    {
+      "date": "2026-07-25",
+      "description": "UPI/DR/790933616150/ZEPTO/YESB/zepto@ybl",
+      "amount": 501.54,
+      "direction": "debit",
+      "balance": 63369.83,
+      "category": "food",
+      "reference": "790933616150",
+      "page": null
+    },
+    {
+      "date": "2026-07-27",
+      "description": "UPI/DR/329159142739/ZEPTO/ICIC/zepto@icici",
+      "amount": 688.62,
+      "direction": "debit",
+      "balance": 62681.21,
+      "category": "food",
+      "reference": "329159142739",
+      "page": null
+    },
+    {
+      "date": "2026-07-28",
+      "description": "UPI/DR/797732084371/SWIGGY/ICIC/swiggy@icici",
+      "amount": 316.85,
+      "direction": "debit",
+      "balance": 62364.36,
+      "category": "food",
+      "reference": "797732084371",
+      "page": null
+    },
+    {
+      "date": "2026-07-29",
+      "description": "IMPS/P2P/196831611956/ARYAN MAHARAJ",
+      "amount": 10000.0,
+      "direction": "debit",
+      "balance": 52364.36,
+      "category": "transfer",
+      "reference": "196831611956",
+      "page": null
+    },
+    {
+      "date": "2026-07-29",
+      "description": "UPI/DR/648275934229/SWIGGY/UTIB/swiggy@axl",
+      "amount": 717.04,
+      "direction": "debit",
+      "balance": 51647.32,
+      "category": "food",
+      "reference": "648275934229",
+      "page": null
+    },
+    {
+      "date": "2026-07-29",
+      "description": "UPI/DR/345877882397/NAMMA METRO/YESB/nammametro@ybl",
+      "amount": 857.12,
+      "direction": "debit",
+      "balance": 50790.2,
+      "category": "transport",
+      "reference": "345877882397",
+      "page": null
+    },
+    {
+      "date": "2026-07-30",
+      "description": "ECOM PUR/4821/MEESHO/GURGAON",
+      "amount": 698.78,
+      "direction": "debit",
+      "balance": 50091.42,
+      "category": "shopping",
+      "reference": "757132452561",
+      "page": null
+    },
+    {
+      "date": "2026-07-31",
+      "description": "CREDIT INTEREST",
+      "amount": 226.85,
+      "direction": "credit",
+      "balance": 50318.27,
+      "category": "income",
+      "reference": "612866779068",
+      "page": null
+    },
+    {
+      "date": "2026-08-01",
+      "description": "BY TRANSFER-NEFT*ICIC0156802*ICICN820151617123*ACME TECH",
+      "amount": 85000.0,
+      "direction": "credit",
+      "balance": 135318.27,
+      "category": "income",
+      "reference": "ICICN820151617123",
+      "page": null
+    },
+    {
+      "date": "2026-08-02",
+      "description": "UPI/DR/742773523346/SWIGGY/HDFC/swiggy@hdfcbank",
+      "amount": 639.0,
+      "direction": "debit",
+      "balance": 134679.27,
+      "category": "food",
+      "reference": "742773523346",
+      "page": null
+    },
+    {
+      "date": "2026-08-02",
+      "description": "UPI/DR/494702875840/UBER/YESB/uber@ybl",
+      "amount": 309.37,
+      "direction": "debit",
+      "balance": 134369.9,
+      "category": "transport",
+      "reference": "494702875840",
+      "page": null
+    },
+    {
+      "date": "2026-08-03",
+      "description": "UPI/DR/230583221679/ZOMATO/UTIB/zomato@axl",
+      "amount": 681.77,
+      "direction": "debit",
+      "balance": 133688.13,
+      "category": "food",
+      "reference": "230583221679",
+      "page": null
+    },
+    {
+      "date": "2026-08-03",
+      "description": "UPI/DR/242872947887/ZEPTO/PYTM/zepto@paytm",
+      "amount": 881.14,
+      "direction": "debit",
+      "balance": 132806.99,
+      "category": "food",
+      "reference": "242872947887",
+      "page": null
+    },
+    {
+      "date": "2026-08-04",
+      "description": "IMPS/P2P/542641960943/ARYAN MAHARAJ",
+      "amount": 10000.0,
+      "direction": "debit",
+      "balance": 122806.99,
+      "category": "transfer",
+      "reference": "542641960943",
+      "page": null
+    },
+    {
+      "date": "2026-08-05",
+      "description": "UPI/DR/812896561232/UDANT DEWAN/UTIB/udant.dewan@okaxis",
+      "amount": 22000.0,
+      "direction": "debit",
+      "balance": 100806.99,
+      "category": "bills",
+      "reference": "812896561232",
+      "page": null
+    },
+    {
+      "date": "2026-08-07",
+      "description": "ECOM PUR/4821/MEESHO/GURGAON",
+      "amount": 878.72,
+      "direction": "debit",
+      "balance": 99928.27,
+      "category": "shopping",
+      "reference": "852493720587",
+      "page": null
+    },
+    {
+      "date": "2026-08-07",
+      "description": "UPI/DR/956217530058/REDBUS/YESB/redbus@ybl",
+      "amount": 1474.54,
+      "direction": "debit",
+      "balance": 98453.73,
+      "category": "transport",
+      "reference": "956217530058",
+      "page": null
+    },
+    {
+      "date": "2026-08-10",
+      "description": "UPI/DR/311521368324/BESCOM/YESB/bescom@ybl",
+      "amount": 2569.12,
+      "direction": "debit",
+      "balance": 95884.61,
+      "category": "bills",
+      "reference": "311521368324",
+      "page": null
+    },
+    {
+      "date": "2026-08-11",
+      "description": "ECOM PUR/4821/AMAZON/NEW DELHI",
+      "amount": 5939.67,
+      "direction": "debit",
+      "balance": 89944.94,
+      "category": "shopping",
+      "reference": "277218748445",
+      "page": null
+    },
+    {
+      "date": "2026-08-11",
+      "description": "UPI/DR/538916150327/AYUSHMAN CHANDER/ICIC/ayushman.chander@okicici",
+      "amount": 1050.0,
+      "direction": "debit",
+      "balance": 88894.94,
+      "category": "transfer",
+      "reference": "538916150327",
+      "page": null
+    },
+    {
+      "date": "2026-08-12",
+      "description": "UPI/DR/608002483225/BWSSB/UTIB/bwssb@axl",
+      "amount": 443.37,
+      "direction": "debit",
+      "balance": 88451.57,
+      "category": "bills",
+      "reference": "608002483225",
+      "page": null
+    },
+    {
+      "date": "2026-08-12",
+      "description": "UPI/DR/700581361458/SWIGGY/HDFC/swiggy@hdfcbank",
+      "amount": 431.09,
+      "direction": "debit",
+      "balance": 88020.48,
+      "category": "food",
+      "reference": "700581361458",
+      "page": null
+    },
+    {
+      "date": "2026-08-12",
+      "description": "UPI/DR/239284873367/RAPIDO/UTIB/rapido@axl",
+      "amount": 148.92,
+      "direction": "debit",
+      "balance": 87871.56,
+      "category": "transport",
+      "reference": "239284873367",
+      "page": null
+    },
+    {
+      "date": "2026-08-12",
+      "description": "UPI/DR/606455894514/RUSHIL SAINI/SBIN/rushil.saini@oksbi",
+      "amount": 1150.0,
+      "direction": "debit",
+      "balance": 86721.56,
+      "category": "transfer",
+      "reference": "606455894514",
+      "page": null
+    },
+    {
+      "date": "2026-08-15",
+      "description": "UPI/DR/591929601508/JIO/UTIB/jio@axl",
+      "amount": 349.0,
+      "direction": "debit",
+      "balance": 86372.56,
+      "category": "bills",
+      "reference": "591929601508",
+      "page": null
+    },
+    {
+      "date": "2026-08-15",
+      "description": "UPI/DR/211652384077/ZOMATO/PYTM/zomato@paytm",
+      "amount": 640.31,
+      "direction": "debit",
+      "balance": 85732.25,
+      "category": "food",
+      "reference": "211652384077",
+      "page": null
+    },
+    {
+      "date": "2026-08-16",
+      "description": "UPI/DR/735906343638/ZEPTO/ICIC/zepto@icici",
+      "amount": 473.77,
+      "direction": "debit",
+      "balance": 85258.48,
+      "category": "food",
+      "reference": "735906343638",
+      "page": null
+    },
+    {
+      "date": "2026-08-17",
+      "description": "ECOM PUR/4821/AJIO/MUMBAI",
+      "amount": 1770.32,
+      "direction": "debit",
+      "balance": 83488.16,
+      "category": "shopping",
+      "reference": "159468562624",
+      "page": null
+    },
+    {
+      "date": "2026-08-18",
+      "description": "UPI/DR/782787430916/NAMMA METRO/HDFC/nammametro@hdfcbank",
+      "amount": 1439.91,
+      "direction": "debit",
+      "balance": 82048.25,
+      "category": "transport",
+      "reference": "782787430916",
+      "page": null
+    },
+    {
+      "date": "2026-08-19",
+      "description": "UPI/DR/160805710565/SWIGGY/PYTM/swiggy@paytm",
+      "amount": 542.25,
+      "direction": "debit",
+      "balance": 81506.0,
+      "category": "food",
+      "reference": "160805710565",
+      "page": null
+    },
+    {
+      "date": "2026-08-19",
+      "description": "UPI/DR/835316694200/BLINKIT/ICIC/blinkit@icici",
+      "amount": 1064.18,
+      "direction": "debit",
+      "balance": 80441.82,
+      "category": "food",
+      "reference": "835316694200",
+      "page": null
+    },
+    {
+      "date": "2026-08-21",
+      "description": "ECOM PUR/4821/AMAZON/MUMBAI",
+      "amount": 3556.41,
+      "direction": "debit",
+      "balance": 76885.41,
+      "category": "shopping",
+      "reference": "148432972787",
+      "page": null
+    },
+    {
+      "date": "2026-08-22",
+      "description": "UPI/DR/108901504899/ZOMATO/HDFC/zomato@hdfcbank",
+      "amount": 658.59,
+      "direction": "debit",
+      "balance": 76226.82,
+      "category": "food",
+      "reference": "108901504899",
+      "page": null
+    },
+    {
+      "date": "2026-08-23",
+      "description": "UPI/DR/888821730785/SWIGGY/PYTM/swiggy@paytm",
+      "amount": 1012.14,
+      "direction": "debit",
+      "balance": 75214.68,
+      "category": "food",
+      "reference": "888821730785",
+      "page": null
+    },
+    {
+      "date": "2026-08-23",
+      "description": "UPI/DR/243433808038/SWIGGY/ICIC/swiggy@icici",
+      "amount": 446.95,
+      "direction": "debit",
+      "balance": 74767.73,
+      "category": "food",
+      "reference": "243433808038",
+      "page": null
+    },
+    {
+      "date": "2026-08-23",
+      "description": "UPI/DR/830178040304/SWIGGY/PYTM/swiggy@paytm",
+      "amount": 440.57,
+      "direction": "debit",
+      "balance": 74327.16,
+      "category": "food",
+      "reference": "830178040304",
+      "page": null
+    },
+    {
+      "date": "2026-08-24",
+      "description": "UPI/DR/151785130539/ZEPTO/ICIC/zepto@icici",
+      "amount": 886.67,
+      "direction": "debit",
+      "balance": 73440.49,
+      "category": "food",
+      "reference": "151785130539",
+      "page": null
+    },
+    {
+      "date": "2026-08-24",
+      "description": "UPI/DR/279807112340/UBER/UTIB/uber@axl",
+      "amount": 241.18,
+      "direction": "debit",
+      "balance": 73199.31,
+      "category": "transport",
+      "reference": "279807112340",
+      "page": null
+    },
+    {
+      "date": "2026-08-26",
+      "description": "UPI/DR/293379984954/UBER/HDFC/uber@hdfcbank",
+      "amount": 591.09,
+      "direction": "debit",
+      "balance": 72608.22,
+      "category": "transport",
+      "reference": "293379984954",
+      "page": null
+    },
+    {
+      "date": "2026-08-26",
+      "description": "IMPS/P2P/911164978375/VIRAJ TIWARI",
+      "amount": 950.0,
+      "direction": "debit",
+      "balance": 71658.22,
+      "category": "transfer",
+      "reference": "911164978375",
+      "page": null
+    },
+    {
+      "date": "2026-08-27",
+      "description": "UPI/DR/388339584783/ZOMATO/YESB/zomato@ybl",
+      "amount": 593.13,
+      "direction": "debit",
+      "balance": 71065.09,
+      "category": "food",
+      "reference": "388339584783",
+      "page": null
+    },
+    {
+      "date": "2026-08-28",
+      "description": "IMPS/P2P/517076094887/VIRAJ TIWARI",
+      "amount": 300.0,
+      "direction": "debit",
+      "balance": 70765.09,
+      "category": "transfer",
+      "reference": "517076094887",
+      "page": null
+    },
+    {
+      "date": "2026-08-28",
+      "description": "ATM WDL/BENGALURU/S1AB5573",
+      "amount": 3000.0,
+      "direction": "debit",
+      "balance": 67765.09,
+      "category": "cash",
+      "reference": "S1AB5573",
+      "page": null
+    },
+    {
+      "date": "2026-08-30",
+      "description": "UPI/DR/565081604082/ZEPTO/HDFC/zepto@hdfcbank",
+      "amount": 1235.39,
+      "direction": "debit",
+      "balance": 66529.7,
+      "category": "food",
+      "reference": "565081604082",
+      "page": null
+    },
+    {
+      "date": "2026-08-30",
+      "description": "UPI/DR/370064409283/BIGBASKET/YESB/bigbasket@ybl",
+      "amount": 1414.65,
+      "direction": "debit",
+      "balance": 65115.05,
+      "category": "food",
+      "reference": "370064409283",
+      "page": null
+    },
+    {
+      "date": "2026-08-31",
+      "description": "UPI/DR/753129325865/SWIGGY INSTAMART/UTIB/swiggyinstamart@axl",
+      "amount": 1102.61,
+      "direction": "debit",
+      "balance": 64012.44,
+      "category": "food",
+      "reference": "753129325865",
+      "page": null
+    },
+    {
+      "date": "2026-08-31",
+      "description": "UPI/DR/755321467395/SWIGGY/UTIB/swiggy@axl",
+      "amount": 898.8,
+      "direction": "debit",
+      "balance": 63113.64,
+      "category": "food",
+      "reference": "755321467395",
+      "page": null
+    },
+    {
+      "date": "2026-08-31",
+      "description": "CREDIT INTEREST",
+      "amount": 147.95,
+      "direction": "credit",
+      "balance": 63261.59,
+      "category": "income",
+      "reference": "661100891573",
+      "page": null
+    },
+    {
+      "date": "2026-09-01",
+      "description": "BY TRANSFER-NEFT*ICIC0984642*ICICN463080281895*ACME TECH",
+      "amount": 85000.0,
+      "direction": "credit",
+      "balance": 148261.59,
+      "category": "income",
+      "reference": "ICICN463080281895",
+      "page": null
+    },
+    {
+      "date": "2026-09-01",
+      "description": "UPI/DR/528437913341/IRCTC/ICIC/irctc@icici",
+      "amount": 4005.3,
+      "direction": "debit",
+      "balance": 144256.29,
+      "category": "transport",
+      "reference": "528437913341",
+      "page": null
+    },
+    {
+      "date": "2026-09-01",
+      "description": "UPI/DR/686788125561/RUSHIL SAINI/SBIN/rushil.saini@oksbi",
+      "amount": 1450.0,
+      "direction": "debit",
+      "balance": 142806.29,
+      "category": "transfer",
+      "reference": "686788125561",
+      "page": null
+    },
+    {
+      "date": "2026-09-02",
+      "description": "UPI/DR/299551475357/GAGAN SAMI/UTIB/gagan.sami@okaxis",
+      "amount": 1000.0,
+      "direction": "debit",
+      "balance": 141806.29,
+      "category": "transfer",
+      "reference": "299551475357",
+      "page": null
+    },
+    {
+      "date": "2026-09-03",
+      "description": "UPI/DR/886814108140/BIGBASKET/PYTM/bigbasket@paytm",
+      "amount": 1635.36,
+      "direction": "debit",
+      "balance": 140170.93,
+      "category": "food",
+      "reference": "886814108140",
+      "page": null
+    },
+    {
+      "date": "2026-09-03",
+      "description": "ECOM PUR/4821/FLIPKART/NEW DELHI",
+      "amount": 3507.92,
+      "direction": "debit",
+      "balance": 136663.01,
+      "category": "shopping",
+      "reference": "694126611586",
+      "page": null
+    },
+    {
+      "date": "2026-09-04",
+      "description": "IMPS/P2P/294395439052/ARYAN MAHARAJ",
+      "amount": 10000.0,
+      "direction": "debit",
+      "balance": 126663.01,
+      "category": "transfer",
+      "reference": "294395439052",
+      "page": null
+    },
+    {
+      "date": "2026-09-05",
+      "description": "UPI/DR/134098763897/UDANT DEWAN/UTIB/udant.dewan@okaxis",
+      "amount": 22000.0,
+      "direction": "debit",
+      "balance": 104663.01,
+      "category": "bills",
+      "reference": "134098763897",
+      "page": null
+    },
+    {
+      "date": "2026-09-05",
+      "description": "ECOM PUR/4821/AJIO/BANGALORE",
+      "amount": 1265.61,
+      "direction": "debit",
+      "balance": 103397.4,
+      "category": "shopping",
+      "reference": "270484216305",
+      "page": null
+    },
+    {
+      "date": "2026-09-07",
+      "description": "UPI/DR/819865130020/ZEPTO/PYTM/zepto@paytm",
+      "amount": 757.59,
+      "direction": "debit",
+      "balance": 102639.81,
+      "category": "food",
+      "reference": "819865130020",
+      "page": null
+    },
+    {
+      "date": "2026-09-08",
+      "description": "UPI/DR/147349546511/ZOMATO/UTIB/zomato@axl",
+      "amount": 800.06,
+      "direction": "debit",
+      "balance": 101839.75,
+      "category": "food",
+      "reference": "147349546511",
+      "page": null
+    },
+    {
+      "date": "2026-09-08",
+      "description": "UPI/DR/945463185629/DOMINOS/PYTM/dominos@paytm",
+      "amount": 912.19,
+      "direction": "debit",
+      "balance": 100927.56,
+      "category": "food",
+      "reference": "945463185629",
+      "page": null
+    },
+    {
+      "date": "2026-09-08",
+      "description": "UPI/DR/153534834134/SWIGGY/PYTM/swiggy@paytm",
+      "amount": 370.18,
+      "direction": "debit",
+      "balance": 100557.38,
+      "category": "food",
+      "reference": "153534834134",
+      "page": null
+    },
+    {
+      "date": "2026-09-10",
+      "description": "UPI/DR/479823559180/BESCOM/PYTM/bescom@paytm",
+      "amount": 661.85,
+      "direction": "debit",
+      "balance": 99895.53,
+      "category": "bills",
+      "reference": "479823559180",
+      "page": null
+    },
+    {
+      "date": "2026-09-10",
+      "description": "UPI/DR/200223870427/BLINKIT/PYTM/blinkit@paytm",
+      "amount": 1053.19,
+      "direction": "debit",
+      "balance": 98842.34,
+      "category": "food",
+      "reference": "200223870427",
+      "page": null
+    },
+    {
+      "date": "2026-09-11",
+      "description": "UPI/DR/334830030878/BLINKIT/HDFC/blinkit@hdfcbank",
+      "amount": 979.72,
+      "direction": "debit",
+      "balance": 97862.62,
+      "category": "food",
+      "reference": "334830030878",
+      "page": null
+    },
+    {
+      "date": "2026-09-11",
+      "description": "ECOM PUR/4821/AMAZON/BANGALORE",
+      "amount": 2999.91,
+      "direction": "debit",
+      "balance": 94862.71,
+      "category": "shopping",
+      "reference": "188219282055",
+      "page": null
+    },
+    {
+      "date": "2026-09-11",
+      "description": "UPI/DR/525326422970/AYUSHMAN CHANDER/ICIC/ayushman.chander@okicici",
+      "amount": 2300.0,
+      "direction": "debit",
+      "balance": 92562.71,
+      "category": "transfer",
+      "reference": "525326422970",
+      "page": null
+    },
+    {
+      "date": "2026-09-12",
+      "description": "UPI/DR/308634857005/BWSSB/YESB/bwssb@ybl",
+      "amount": 1358.65,
+      "direction": "debit",
+      "balance": 91204.06,
+      "category": "bills",
+      "reference": "308634857005",
+      "page": null
+    },
+    {
+      "date": "2026-09-13",
+      "description": "UPI/DR/414837745591/ZOMATO/YESB/zomato@ybl",
+      "amount": 588.61,
+      "direction": "debit",
+      "balance": 90615.45,
+      "category": "food",
+      "reference": "414837745591",
+      "page": null
+    },
+    {
+      "date": "2026-09-13",
+      "description": "ATM WDL/BENGALURU/S1AN4467",
+      "amount": 4000.0,
+      "direction": "debit",
+      "balance": 86615.45,
+      "category": "cash",
+      "reference": "S1AN4467",
+      "page": null
+    },
+    {
+      "date": "2026-09-14",
+      "description": "ECOM PUR/4821/AMAZON/NEW DELHI",
+      "amount": 1422.7,
+      "direction": "debit",
+      "balance": 85192.75,
+      "category": "shopping",
+      "reference": "563138741006",
+      "page": null
+    },
+    {
+      "date": "2026-09-15",
+      "description": "UPI/DR/767594228337/JIO/ICIC/jio@icici",
+      "amount": 349.0,
+      "direction": "debit",
+      "balance": 84843.75,
+      "category": "bills",
+      "reference": "767594228337",
+      "page": null
+    },
+    {
+      "date": "2026-09-15",
+      "description": "ECOM PUR/4821/MEESHO/GURGAON",
+      "amount": 337.89,
+      "direction": "debit",
+      "balance": 84505.86,
+      "category": "shopping",
+      "reference": "358925230833",
+      "page": null
+    },
+    {
+      "date": "2026-09-17",
+      "description": "UPI/DR/193024055640/DOMINOS/UTIB/dominos@axl",
+      "amount": 497.14,
+      "direction": "debit",
+      "balance": 84008.72,
+      "category": "food",
+      "reference": "193024055640",
+      "page": null
+    },
+    {
+      "date": "2026-09-18",
+      "description": "UPI/DR/844657758783/SWIGGY/HDFC/swiggy@hdfcbank",
+      "amount": 337.31,
+      "direction": "debit",
+      "balance": 83671.41,
+      "category": "food",
+      "reference": "844657758783",
+      "page": null
+    },
+    {
+      "date": "2026-09-18",
+      "description": "UPI/DR/247989376703/BIGBASKET/YESB/bigbasket@ybl",
+      "amount": 1223.52,
+      "direction": "debit",
+      "balance": 82447.89,
+      "category": "food",
+      "reference": "247989376703",
+      "page": null
+    },
+    {
+      "date": "2026-09-20",
+      "description": "UPI/DR/995984519250/SWIGGY INSTAMART/HDFC/swiggyinstamart@hdfcbank",
+      "amount": 854.21,
+      "direction": "debit",
+      "balance": 81593.68,
+      "category": "food",
+      "reference": "995984519250",
+      "page": null
+    },
+    {
+      "date": "2026-09-21",
+      "description": "UPI/DR/567199758169/SWIGGY INSTAMART/YESB/swiggyinstamart@ybl",
+      "amount": 1386.74,
+      "direction": "debit",
+      "balance": 80206.94,
+      "category": "food",
+      "reference": "567199758169",
+      "page": null
+    },
+    {
+      "date": "2026-09-23",
+      "description": "UPI/DR/259961695156/SWIGGY INSTAMART/HDFC/swiggyinstamart@hdfcbank",
+      "amount": 936.65,
+      "direction": "debit",
+      "balance": 79270.29,
+      "category": "food",
+      "reference": "259961695156",
+      "page": null
+    },
+    {
+      "date": "2026-09-24",
+      "description": "UPI/DR/433156770265/ZOMATO/PYTM/zomato@paytm",
+      "amount": 916.51,
+      "direction": "debit",
+      "balance": 78353.78,
+      "category": "food",
+      "reference": "433156770265",
+      "page": null
+    },
+    {
+      "date": "2026-09-24",
+      "description": "UPI/DR/591979363867/ZOMATO/HDFC/zomato@hdfcbank",
+      "amount": 901.19,
+      "direction": "debit",
+      "balance": 77452.59,
+      "category": "food",
+      "reference": "591979363867",
+      "page": null
+    },
+    {
+      "date": "2026-09-24",
+      "description": "UPI/DR/344374238950/OLA/PYTM/ola@paytm",
+      "amount": 421.58,
+      "direction": "debit",
+      "balance": 77031.01,
+      "category": "transport",
+      "reference": "344374238950",
+      "page": null
+    },
+    {
+      "date": "2026-09-26",
+      "description": "UPI/DR/718423289092/ZOMATO/PYTM/zomato@paytm",
+      "amount": 534.66,
+      "direction": "debit",
+      "balance": 76496.35,
+      "category": "food",
+      "reference": "718423289092",
+      "page": null
+    },
+    {
+      "date": "2026-09-27",
+      "description": "UPI/DR/442192051776/SWIGGY/UTIB/swiggy@axl",
+      "amount": 1000.78,
+      "direction": "debit",
+      "balance": 75495.57,
+      "category": "food",
+      "reference": "442192051776",
+      "page": null
+    },
+    {
+      "date": "2026-09-28",
+      "description": "UPI/DR/922650393259/NAMMA METRO/HDFC/nammametro@hdfcbank",
+      "amount": 1458.35,
+      "direction": "debit",
+      "balance": 74037.22,
+      "category": "transport",
+      "reference": "922650393259",
+      "page": null
+    },
+    {
+      "date": "2026-09-29",
+      "description": "UPI/DR/385400876441/BLINKIT/HDFC/blinkit@hdfcbank",
+      "amount": 578.74,
+      "direction": "debit",
+      "balance": 73458.48,
+      "category": "food",
+      "reference": "385400876441",
+      "page": null
+    },
+    {
+      "date": "2026-09-30",
+      "description": "CREDIT INTEREST",
+      "amount": 209.41,
+      "direction": "credit",
+      "balance": 73667.89,
+      "category": "income",
+      "reference": "470770979513",
+      "page": null
+    }
+  ],
+  "validation": null,
+  "analytics": null,
+  "anomalies": null,
+  "summary": null,
+  "meta": {
+    "source": "simulated",
+    "persona": "salaried_professional",
+    "seed": 42,
+    "narration_style": "sbi"
+  }
+}

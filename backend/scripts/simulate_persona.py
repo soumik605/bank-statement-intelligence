@@ -3,7 +3,7 @@
 
 Usage (from backend/):
     uv run python scripts/simulate_persona.py
-    uv run python scripts/simulate_persona.py --start 2026-01 --months 6 --seed 7
+    uv run python scripts/simulate_persona.py --start 2026-01 --months 6 --seed 7 --bank hdfc
 """
 import argparse
 import datetime as dt
@@ -14,6 +14,7 @@ from pathlib import Path
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND_DIR))
 
+from app.narrations import BANKS  # noqa: E402
 from app.simulator import SALARIED_PROFESSIONAL, simulate  # noqa: E402
 
 OUTPUT_DIR = BACKEND_DIR.parent / "sample_statements"
@@ -24,14 +25,15 @@ def main() -> int:
     parser.add_argument("--start", default="2026-07", help="First month, YYYY-MM (default: 2026-07)")
     parser.add_argument("--months", type=int, default=3)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--out", type=Path, help="Output file (default: sample_statements/<persona>_<start>_<n>m.json)")
+    parser.add_argument("--bank", choices=BANKS, default="sbi", help="Narration style (default: sbi)")
+    parser.add_argument("--out", type=Path, help="Output file (default: sample_statements/<persona>_<bank>_<start>_<n>m.json)")
     args = parser.parse_args()
 
     start = dt.datetime.strptime(args.start, "%Y-%m").date()
     persona = SALARIED_PROFESSIONAL
-    payload = simulate(persona, start, args.months, args.seed)
+    payload = simulate(persona, start, args.months, args.seed, args.bank)
 
-    out = args.out or OUTPUT_DIR / f"{persona.key}_{args.start}_{args.months}m.json"
+    out = args.out or OUTPUT_DIR / f"{persona.key}_{args.bank}_{args.start}_{args.months}m.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(payload.model_dump_json(indent=2) + "\n")
 

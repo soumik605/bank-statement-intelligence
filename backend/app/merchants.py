@@ -50,7 +50,7 @@ MERCHANTS: list[Merchant] = [
     Merchant("Amazon Prime", Category.BILLS, ("AMAZON PRIME", "PRIME VIDEO"), (299, 1_499)),
     Merchant("JioHotstar", Category.BILLS, ("JIOHOTSTAR", "JIO HOTSTAR", "HOTSTAR"), (149, 1_499)),
     Merchant("LIC", Category.BILLS, ("LIC", "LIFE INSURANCE CORP"), (1_000, 25_000)),
-    Merchant("Bajaj Finserv EMI", Category.BILLS, ("BAJAJ FINSERV", "BAJAJ FIN", "EMI"), (1_000, 15_000)),
+    Merchant("Bajaj Finserv EMI", Category.BILLS, ("BAJAJ FINSERV", "BAJAJ FINANCE", "BAJAJ FIN", "EMI"), (1_000, 15_000)),
     Merchant("NoBroker Rent", Category.BILLS, ("NOBROKER", "RENT"), (8_000, 60_000)),
 
     # --- Food (delivery, restaurants, groceries) ---
@@ -89,11 +89,12 @@ MERCHANTS: list[Merchant] = [
     Merchant("Bharat Petroleum", Category.TRANSPORT, ("BHARAT PETROLEUM", "BPCL"), (300, 4_000)),
     Merchant("HP Petrol", Category.TRANSPORT, ("HPCL", "HINDUSTAN PETROLEUM"), (300, 4_000)),
     Merchant("RedBus", Category.TRANSPORT, ("REDBUS",), (400, 2_500)),
-    Merchant("MakeMyTrip", Category.TRANSPORT, ("MAKEMYTRIP", "MMT"), (1_500, 25_000)),
+    # Not "MMT": ICICI prefixes IMPS narrations with MMT/IMPS.
+    Merchant("MakeMyTrip", Category.TRANSPORT, ("MAKEMYTRIP",), (1_500, 25_000)),
     Merchant("IndiGo", Category.TRANSPORT, ("INDIGO", "INTERGLOBE AVIATION"), (2_500, 15_000)),
 
     # --- Cash ---
-    Merchant("ATM withdrawal", Category.CASH, ("ATM", "ATW", "NFS", "CASH WDL", "CASH WITHDRAWAL"), (500, 10_000)),
+    Merchant("ATM withdrawal", Category.CASH, ("ATM", "ATW", "NWD", "NFS", "CASH WDL", "CASH WITHDRAWAL"), (500, 10_000)),
     Merchant("Cash deposit", Category.CASH, ("CASH DEP", "CASH DEPOSIT", "BY CASH", "CDM"), (1_000, 50_000), "credit"),
 
     # --- Other (health, entertainment) ---

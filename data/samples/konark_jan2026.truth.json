@@ -2,7 +2,7 @@
   "source_file": "konark_jan2026.csv",
   "statement": {
     "bank_name": "Konark Co-operative Bank Ltd.",
-    "account_number": "XXXX XXXX 7710",
+    "account_number": "XXXX7710",
     "holder_name": "Rohan Kulkarni",
     "period_start": "2026-01-01",
     "period_end": "2026-01-31"

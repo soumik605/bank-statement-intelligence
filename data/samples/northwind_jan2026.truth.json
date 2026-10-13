@@ -1,11 +1,11 @@
 {
   "source_file": "northwind_jan2026.csv",
   "statement": {
-    "bank_name": "Northwind Bank",
-    "account_number": "XXXXXXXX4821",
-    "holder_name": "Ananya Rao",
+    "bank_name": null,
+    "account_number": null,
+    "holder_name": null,
     "period_start": "2026-01-01",
-    "period_end": "2026-01-31"
+    "period_end": "2026-01-28"
   },
   "opening_balance": 48250.75,
   "closing_balance": 493504.65,

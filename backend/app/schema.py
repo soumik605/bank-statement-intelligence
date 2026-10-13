@@ -69,16 +69,17 @@ class Transaction(BaseModel):
 class StatementInfo(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    bank_name: str = Field(min_length=1)
-    account_number: str = Field(description="Masked, at most the last 4 digits visible, e.g. XXXXXXXX1234")
-    holder_name: str = Field(min_length=1)
+    # None when the statement doesn't print it; many CSV exports carry no account details.
+    bank_name: str | None = Field(default=None, min_length=1)
+    account_number: str | None = Field(default=None, description="Masked, last 4 digits only, e.g. XXXX1234")
+    holder_name: str | None = Field(default=None, min_length=1)
     period_start: dt.date
     period_end: dt.date
 
     @field_validator("account_number")
     @classmethod
-    def _must_be_masked(cls, value: str) -> str:
-        if sum(c.isdigit() for c in value) > 4:
+    def _must_be_masked(cls, value: str | None) -> str | None:
+        if value is not None and sum(c.isdigit() for c in value) > 4:
             raise ValueError("account_number must be masked; at most 4 digits may be visible")
         return value
 

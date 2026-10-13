@@ -19,19 +19,43 @@
       "additionalProperties": false,
       "properties": {
         "bank_name": {
-          "minLength": 1,
-          "title": "Bank Name",
-          "type": "string"
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bank Name"
         },
         "account_number": {
-          "description": "Masked, at most the last 4 digits visible, e.g. XXXXXXXX1234",
-          "title": "Account Number",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Masked, last 4 digits only, e.g. XXXX1234",
+          "title": "Account Number"
         },
         "holder_name": {
-          "minLength": 1,
-          "title": "Holder Name",
-          "type": "string"
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Holder Name"
         },
         "period_start": {
           "format": "date",
@@ -45,9 +69,6 @@
         }
       },
       "required": [
-        "bank_name",
-        "account_number",
-        "holder_name",
         "period_start",
         "period_end"
       ],

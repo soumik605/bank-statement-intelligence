@@ -51,6 +51,33 @@ def extract_rows(path: str | Path) -> list[RawRow]:
     raise ExtractionError(f"unsupported file type: {Path(path).name}")
 
 
+def extract_header_text(path: str | Path) -> str:
+    """The text above the transaction table (bank name, account details,
+    period), one line per line, for the next stage to pull details out of.
+    Empty when the table starts on the first line."""
+    path = Path(path)
+    suffix = path.suffix.lower()
+    if suffix == ".csv":
+        lines = []
+        with path.open(newline="", encoding=_csv_encoding(path)) as f:
+            for row in csv.reader(f):
+                if _is_header(row):
+                    break
+                # "Account Number,XXXX 7710" reads the same as the PDF's "Account Number: XXXX 7710".
+                lines.append(": ".join(c.strip() for c in row if c.strip()))
+        return "\n".join(line for line in lines if line)
+    if suffix == ".pdf":
+        lines = []
+        with pdfplumber.open(path) as pdf:
+            for page in pdf.pages:
+                for words in _lines(page.extract_words()):
+                    if _is_header([c.text for c in _split_on_gaps(words)]):
+                        return "\n".join(lines)
+                    lines.append(" ".join(w["text"] for w in words))
+        return "\n".join(lines)
+    raise ExtractionError(f"unsupported file type: {path.name}")
+
+
 # --- CSV ----------------------------------------------------------------------
 
 def extract_csv(path: str | Path) -> list[RawRow]:

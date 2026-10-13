@@ -52,6 +52,8 @@ class TruthRow(BaseModel):
 
 
 class Truth(BaseModel):
+    """The correct output of the parsing stages for one statement file."""
+
     source_file: str
     statement: StatementInfo
     opening_balance: float
@@ -105,6 +107,7 @@ class Spec:
     style: dict[str, str]
     writer: Callable[[Path, "Spec", list[Row], random.Random], None]
     extras: list[Event] = field(default_factory=list)
+    prints_account_details: bool = True  # False: the file has only the table
 
 
 def month_events(rng: random.Random, year: int, month: int, spec: Spec) -> list[Event]:
@@ -333,6 +336,7 @@ def specs() -> list[Spec]:
                 "uber": "UPI-UBER INDIA-{ref}",
             },
             writer=write_northwind_csv,
+            prints_account_details=False,
             extras=[
                 Event(dt.date(2026, 1, 7), "person", Decimal("1500"), "debit", Category.TRANSFER,
                       "UPI/9876xxxx/RAMESH", trap=RAMESH),
@@ -445,6 +449,18 @@ def specs() -> list[Spec]:
 
 # --- Main ---------------------------------------------------------------------
 
+def expected_statement(spec: Spec, rows: list[Row]) -> StatementInfo:
+    """What a correct parser can recover from the file, which is not always everything we know."""
+    if not spec.prints_account_details:
+        # Nothing to read the details from; the period comes from the first and last transactions.
+        return StatementInfo(period_start=rows[0].event.date, period_end=rows[-1].event.date)
+    last4 = "".join(c for c in spec.account_number if c.isdigit())[-4:]
+    return StatementInfo(
+        bank_name=spec.bank_name, account_number=f"XXXX{last4}", holder_name=spec.holder_name,
+        period_start=spec.period_start, period_end=spec.period_end,
+    )
+
+
 def generate(out_dir: Path) -> list[Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     written = []
@@ -456,10 +472,7 @@ def generate(out_dir: Path) -> list[Path]:
 
         truth = Truth(
             source_file=source.name,
-            statement=StatementInfo(
-                bank_name=spec.bank_name, account_number=spec.account_number, holder_name=spec.holder_name,
-                period_start=spec.period_start, period_end=spec.period_end,
-            ),
+            statement=expected_statement(spec, rows),
             opening_balance=float(spec.opening),
             closing_balance=float(rows[-1].balance),
             rows=[

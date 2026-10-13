@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "Category": {
+      "enum": [
+        "income",
+        "transfer",
+        "bills",
+        "food",
+        "shopping",
+        "transport",
+        "cash",
+        "other"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "StatementInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "bank_name": {
+          "minLength": 1,
+          "title": "Bank Name",
+          "type": "string"
+        },
+        "account_number": {
+          "description": "Masked, at most the last 4 digits visible, e.g. XXXXXXXX1234",
+          "title": "Account Number",
+          "type": "string"
+        },
+        "holder_name": {
+          "minLength": 1,
+          "title": "Holder Name",
+          "type": "string"
+        },
+        "period_start": {
+          "format": "date",
+          "title": "Period Start",
+          "type": "string"
+        },
+        "period_end": {
+          "format": "date",
+          "title": "Period End",
+          "type": "string"
+        }
+      },
+      "required": [
+        "bank_name",
+        "account_number",
+        "holder_name",
+        "period_start",
+        "period_end"
+      ],
+      "title": "StatementInfo",
+      "type": "object"
+    },
+    "Transaction": {
+      "additionalProperties": false,
+      "properties": {
+        "date": {
+          "description": "Transaction date, ISO 8601 (YYYY-MM-DD)",
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "description": {
+          "description": "Narration as printed on the statement",
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "amount": {
+          "description": "Always positive, rounded to 2 decimals; direction is in `type`",
+          "exclusiveMinimum": 0,
+          "title": "Amount",
+          "type": "number"
+        },
+        "type": {
+          "description": "credit = money in, debit = money out",
+          "enum": [
+            "credit",
+            "debit"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "balance": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Running balance after this transaction; signed",
+          "title": "Balance"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Category"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "None until categorized"
+        },
+        "category_source": {
+          "anyOf": [
+            {
+              "enum": [
+                "rule",
+                "llm"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What assigned `category`; set if and only if `category` is set",
+          "title": "Category Source"
+        },
+        "is_unusual": {
+          "default": false,
+          "title": "Is Unusual",
+          "type": "boolean"
+        },
+        "unusual_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Required when is_unusual is true, else null",
+          "title": "Unusual Reason"
+        }
+      },
+      "required": [
+        "date",
+        "description",
+        "amount",
+        "type"
+      ],
+      "title": "Transaction",
+      "type": "object"
+    }
+  },
+  "title": "Bank statement schema"
+}

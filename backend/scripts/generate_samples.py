@@ -120,15 +120,15 @@ def month_events(rng: random.Random, year: int, month: int, spec: Spec) -> list[
         return Decimal(rng.randint(lo * 100, hi * 100)) / 100
 
     events = [
-        Event(dt.date(year, month, 1), "salary", spec.salary, "credit", Category.INCOME),
-        Event(on(2, 5), "rent", spec.rent, "debit", Category.BILLS),
-        Event(on(8, 14), "electricity", money(900, 2600), "debit", Category.BILLS),
+        Event(dt.date(year, month, 1), "salary", spec.salary, "credit", Category.SALARY),
+        Event(on(2, 5), "rent", spec.rent, "debit", Category.RENT),
+        Event(on(8, 14), "electricity", money(900, 2600), "debit", Category.UTILITIES),
         Event(on(3, 26), "atm", Decimal(rng.choice([2000, 3000, 5000])), "debit", Category.CASH),
         Event(on(5, 25), "grocery", money(1200, 4200), "debit", Category.FOOD),
         Event(on(5, 25), "amazon", money(600, 3500), "debit", Category.SHOPPING),
     ]
     events += [Event(on(1, 31), "swiggy", money(180, 850), "debit", Category.FOOD) for _ in range(rng.randint(4, 7))]
-    events += [Event(on(1, 31), "uber", money(95, 640), "debit", Category.TRANSPORT) for _ in range(rng.randint(3, 6))]
+    events += [Event(on(1, 31), "uber", money(95, 640), "debit", Category.TRAVEL) for _ in range(rng.randint(3, 6))]
     return events
 
 
@@ -312,7 +312,7 @@ def write_sahyadri_pdf(path: Path, spec: Spec, rows: list[Row], rng: random.Rand
 # --- The statements -----------------------------------------------------------
 
 RAMESH = "Masked phone digits look like an amount or reference; it's a payment to a person (transfer), not a merchant"
-REFUND = "Amazon keyword suggests shopping, but it's a credit: a refund is income, not spending"
+REFUND = "Amazon keyword suggests shopping, but it's a credit: money back, not spending"
 SELF = "Moving money to the holder's own savings account; not an expense"
 HUGE = "One-off amount far above anything else in the statement"
 
@@ -340,7 +340,7 @@ def specs() -> list[Spec]:
             extras=[
                 Event(dt.date(2026, 1, 7), "person", Decimal("1500"), "debit", Category.TRANSFER,
                       "UPI/9876xxxx/RAMESH", trap=RAMESH),
-                Event(dt.date(2026, 1, 12), "refund", Decimal("1299"), "credit", Category.INCOME,
+                Event(dt.date(2026, 1, 12), "refund", Decimal("1299"), "credit", Category.REFUND,
                       "AMZN REFUND", trap=REFUND),
                 Event(dt.date(2026, 1, 15), "self", Decimal("25000"), "debit", Category.TRANSFER,
                       "NEFT-SELF-SAVINGS", trap=SELF),
@@ -373,7 +373,7 @@ def specs() -> list[Spec]:
             extras=[
                 Event(dt.date(2026, 1, 6), "person", Decimal("2200"), "debit", Category.TRANSFER,
                       "TO UPI/9876xxxx/RAMESH", trap=RAMESH),
-                Event(dt.date(2026, 1, 13), "refund", Decimal("849"), "credit", Category.INCOME,
+                Event(dt.date(2026, 1, 13), "refund", Decimal("849"), "credit", Category.REFUND,
                       "BY UPI/AMZN REFUND/RF0091", trap=REFUND),
                 Event(dt.date(2026, 1, 16), "self", Decimal("15000"), "debit", Category.TRANSFER,
                       "TO TRF/OWN A/C XX9012/SAVINGS", trap=SELF),
@@ -404,7 +404,7 @@ def specs() -> list[Spec]:
             extras=[
                 Event(dt.date(2026, 3, 9), "person", Decimal("1800"), "debit", Category.TRANSFER,
                       "UPI/9876xxxx/RAMESH", trap=RAMESH),
-                Event(dt.date(2026, 3, 11), "refund", Decimal("2499"), "credit", Category.INCOME,
+                Event(dt.date(2026, 3, 11), "refund", Decimal("2499"), "credit", Category.REFUND,
                       "AMZN REFUND", trap=REFUND),
                 Event(dt.date(2026, 3, 17), "self", Decimal("40000"), "debit", Category.TRANSFER,
                       "NEFT-SELF-SAVINGS", trap=SELF),
@@ -435,7 +435,7 @@ def specs() -> list[Spec]:
                       "UPI/9876xxxx/RAMESH", trap=RAMESH),
                 Event(dt.date(2026, 3, 5), "person", Decimal("1500"), "debit", Category.TRANSFER,
                       "UPI/9876xxxx/RAMESH", trap=RAMESH),
-                Event(dt.date(2026, 2, 19), "refund", Decimal("649"), "credit", Category.INCOME,
+                Event(dt.date(2026, 2, 19), "refund", Decimal("649"), "credit", Category.REFUND,
                       "AMZN REFUND", trap=REFUND),
                 Event(dt.date(2026, 3, 2), "self", Decimal("20000"), "debit", Category.TRANSFER,
                       "NEFT-SELF-SAVINGS", trap=SELF),

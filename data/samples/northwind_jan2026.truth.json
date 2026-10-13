@@ -18,7 +18,7 @@
         "type": "credit",
         "balance": 163250.75
       },
-      "expected_category": "income",
+      "expected_category": "Salary",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -31,7 +31,7 @@
         "type": "debit",
         "balance": 135250.75
       },
-      "expected_category": "bills",
+      "expected_category": "Rent",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -44,7 +44,7 @@
         "type": "debit",
         "balance": 134625.11
       },
-      "expected_category": "food",
+      "expected_category": "Food",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -57,7 +57,7 @@
         "type": "debit",
         "balance": 133823.23
       },
-      "expected_category": "food",
+      "expected_category": "Food",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -70,7 +70,7 @@
         "type": "debit",
         "balance": 133351.18
       },
-      "expected_category": "transport",
+      "expected_category": "Travel",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -83,7 +83,7 @@
         "type": "debit",
         "balance": 133193.34
       },
-      "expected_category": "transport",
+      "expected_category": "Travel",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -96,7 +96,7 @@
         "type": "debit",
         "balance": 131693.34
       },
-      "expected_category": "transfer",
+      "expected_category": "Transfer",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": "Masked phone digits look like an amount or reference; it's a payment to a person (transfer), not a merchant"
@@ -109,7 +109,7 @@
         "type": "debit",
         "balance": 131344.17
       },
-      "expected_category": "food",
+      "expected_category": "Food",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -122,7 +122,7 @@
         "type": "debit",
         "balance": 131211.06
       },
-      "expected_category": "transport",
+      "expected_category": "Travel",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -135,10 +135,10 @@
         "type": "credit",
         "balance": 132510.06
       },
-      "expected_category": "income",
+      "expected_category": "Refund",
       "expected_unusual": false,
       "expected_unusual_reason": null,
-      "trap": "Amazon keyword suggests shopping, but it's a credit: a refund is income, not spending"
+      "trap": "Amazon keyword suggests shopping, but it's a credit: money back, not spending"
     },
     {
       "transaction": {
@@ -148,7 +148,7 @@
         "type": "debit",
         "balance": 132311.11
       },
-      "expected_category": "food",
+      "expected_category": "Food",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -161,7 +161,7 @@
         "type": "debit",
         "balance": 129842.85
       },
-      "expected_category": "bills",
+      "expected_category": "Utilities",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -174,7 +174,7 @@
         "type": "debit",
         "balance": 127842.85
       },
-      "expected_category": "cash",
+      "expected_category": "Cash",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -187,7 +187,7 @@
         "type": "debit",
         "balance": 125109.61
       },
-      "expected_category": "food",
+      "expected_category": "Food",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -200,7 +200,7 @@
         "type": "debit",
         "balance": 124335.71
       },
-      "expected_category": "food",
+      "expected_category": "Food",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -213,7 +213,7 @@
         "type": "debit",
         "balance": 99335.71
       },
-      "expected_category": "transfer",
+      "expected_category": "Transfer",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": "Moving money to the holder's own savings account; not an expense"
@@ -226,7 +226,7 @@
         "type": "debit",
         "balance": 96241.54
       },
-      "expected_category": "shopping",
+      "expected_category": "Shopping",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -239,7 +239,7 @@
         "type": "debit",
         "balance": 95829.04
       },
-      "expected_category": "food",
+      "expected_category": "Food",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": "Same merchant and amount as the next row on the same day; both are real orders, not a duplicate"
@@ -252,7 +252,7 @@
         "type": "debit",
         "balance": 95416.54
       },
-      "expected_category": "food",
+      "expected_category": "Food",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": "Same merchant and amount as the previous row; not a duplicate"
@@ -265,7 +265,7 @@
         "type": "credit",
         "balance": 495416.54
       },
-      "expected_category": "transfer",
+      "expected_category": "Transfer",
       "expected_unusual": true,
       "expected_unusual_reason": "One-off incoming transfer of 4,00,000.00, about 3.5x the monthly salary",
       "trap": "One-off amount far above anything else in the statement"
@@ -278,7 +278,7 @@
         "type": "debit",
         "balance": 495118.25
       },
-      "expected_category": "food",
+      "expected_category": "Food",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -291,7 +291,7 @@
         "type": "debit",
         "balance": 494600.42
       },
-      "expected_category": "transport",
+      "expected_category": "Travel",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -304,7 +304,7 @@
         "type": "debit",
         "balance": 494470.26
       },
-      "expected_category": "transport",
+      "expected_category": "Travel",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -317,7 +317,7 @@
         "type": "debit",
         "balance": 493645.59
       },
-      "expected_category": "food",
+      "expected_category": "Food",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null
@@ -330,7 +330,7 @@
         "type": "debit",
         "balance": 493504.65
       },
-      "expected_category": "transport",
+      "expected_category": "Travel",
       "expected_unusual": false,
       "expected_unusual_reason": null,
       "trap": null

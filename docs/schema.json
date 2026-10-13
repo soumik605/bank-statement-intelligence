@@ -3,14 +3,17 @@
   "$defs": {
     "Category": {
       "enum": [
-        "income",
-        "transfer",
-        "bills",
-        "food",
-        "shopping",
-        "transport",
-        "cash",
-        "other"
+        "Salary",
+        "Income",
+        "Refund",
+        "Rent",
+        "Utilities",
+        "Food",
+        "Travel",
+        "Shopping",
+        "Transfer",
+        "Cash",
+        "Other"
       ],
       "title": "Category",
       "type": "string"

@@ -31,9 +31,9 @@ def test_dr_flag_is_rejected():
 
 
 def test_category_and_source_go_together():
-    Transaction(**BASE, category="food", category_source="llm")
+    Transaction(**BASE, category="Food", category_source="llm")
     with pytest.raises(ValidationError):
-        Transaction(**BASE, category="food")
+        Transaction(**BASE, category="Food")
     with pytest.raises(ValidationError):
         Transaction(**BASE, category_source="rule")
 

@@ -25,14 +25,20 @@ CategorySource = Literal["rule", "llm"]
 
 
 class Category(StrEnum):
-    INCOME = "income"
-    TRANSFER = "transfer"
-    BILLS = "bills"
-    FOOD = "food"
-    SHOPPING = "shopping"
-    TRANSPORT = "transport"
-    CASH = "cash"
-    OTHER = "other"
+    # Money in
+    SALARY = "Salary"
+    INCOME = "Income"  # interest, dividends, maturity proceeds; not salary
+    REFUND = "Refund"  # money back from a purchase; never counts as spending
+    # Money out
+    RENT = "Rent"
+    UTILITIES = "Utilities"
+    FOOD = "Food"
+    TRAVEL = "Travel"
+    SHOPPING = "Shopping"
+    # Either direction
+    TRANSFER = "Transfer"  # own accounts, people, card bill payments
+    CASH = "Cash"
+    OTHER = "Other"
 
 
 class Transaction(BaseModel):

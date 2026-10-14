@@ -35,7 +35,14 @@ class Category(StrEnum):
     FOOD = "Food"
     TRAVEL = "Travel"
     SHOPPING = "Shopping"
+    HEALTH = "Health"  # pharmacies, medical stores, doctors, hospitals
+    ENTERTAINMENT = "Entertainment"  # streaming, movies, events, games
+    EDUCATION = "Education"  # school and college fees, tuition, courses
+    INSURANCE = "Insurance"  # premiums
+    FEES = "Fees & Taxes"  # bank charges, penalties, GST, TDS, income tax
     # Either direction
+    LOANS = "Loans & EMI"  # EMIs and repayments out, disbursements in
+    INVESTMENTS = "Investments"  # SIPs, mutual funds, stocks, deposits; redemptions come back in
     TRANSFER = "Transfer"  # own accounts, people, card bill payments
     CASH = "Cash"
     OTHER = "Other"
@@ -97,9 +104,10 @@ class StatementInfo(BaseModel):
 
 
 # Categories that are never counted as spending. Transfers move money to people
-# or other accounts (including the holder's own), so counting them would double
-# count or overstate spending. Money-in categories never apply to debits anyway.
-NON_SPENDING_CATEGORIES = frozenset({Category.TRANSFER})
+# or other accounts (including the holder's own), and investments set money
+# aside rather than spend it, so counting them would overstate spending.
+# Money-in categories never apply to debits anyway.
+NON_SPENDING_CATEGORIES = frozenset({Category.TRANSFER, Category.INVESTMENTS})
 
 
 class Analytics(BaseModel):
@@ -111,7 +119,7 @@ class Analytics(BaseModel):
     net_flow: Money = Field(description="total_credits - total_debits; negative means more went out than came in")
     total_spending: Money = Field(
         ge=0,
-        description="Debits except Transfer; uncategorized debits count as Other. "
+        description="Debits except Transfer and Investments; uncategorized debits count as Other. "
         "Refunds are credits, so they are not netted against spending",
     )
     spending_by_category: dict[Category, Money] = Field(description="total_spending split by category")

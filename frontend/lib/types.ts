@@ -9,6 +9,13 @@ export type Category =
   | "Food"
   | "Travel"
   | "Shopping"
+  | "Health"
+  | "Entertainment"
+  | "Education"
+  | "Insurance"
+  | "Fees & Taxes"
+  | "Loans & EMI"
+  | "Investments"
   | "Transfer"
   | "Cash"
   | "Other";

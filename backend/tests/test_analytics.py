@@ -53,3 +53,14 @@ def test_net_flow_matches_balance_change(tmp_path):
         assert result.transaction_count == len(txns)
         assert Category.TRANSFER not in result.spending_by_category
         assert round(sum(result.spending_by_category.values()), 2) == result.total_spending
+
+
+def test_investments_are_not_spending():
+    result = compute_analytics([
+        _txn(10000, "debit", Category.INVESTMENTS),  # a SIP
+        _txn(3000, "debit", Category.LOANS),  # an EMI is still money spent
+        _txn(500, "debit", Category.FEES),
+    ])
+    assert result.total_debits == 13500
+    assert result.total_spending == 3500
+    assert Category.INVESTMENTS not in result.spending_by_category

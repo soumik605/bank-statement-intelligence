@@ -12,9 +12,13 @@
 - Account details come from the text above the table, and the account number
   is masked to XXXX1234.
 
-Rows with no date (totals, footers) or no amount (opening-balance rows) are
-skipped and reported in `skipped`. A row whose date or amount is there but
-can't be read raises, because guessing would put wrong numbers downstream.
+Rows with no date (totals, footers, a summary's figures) or no amount
+(opening-balance rows) are skipped and reported in `skipped`. A row whose date
+or amount is there but can't be read raises, because guessing would put wrong
+numbers downstream.
+
+Every date comes out as a datetime.date, serialized as ISO YYYY-MM-DD, whatever
+format the bank printed.
 """
 import datetime as dt
 import re
@@ -98,6 +102,14 @@ DATE_FORMATS = (
     "%d %B %Y", "%d-%B-%Y", "%d %b, %Y", "%d %B, %Y",
     "%Y-%m-%d",  # ISO; the 4-digit year first makes it unambiguous
 )
+# Something shaped like a date: 05/01/26, 05-Jan-2026, 5 January 2026, 2026-01-05,
+# 20260105. Used to tell a date the parser can't read (an error) from text that
+# isn't a date at all, like the figures of a summary block (skipped).
+_DATE_LIKE = re.compile(
+    r"\b\d{1,2}[/\-. ](?:\d{1,2}|[A-Za-z]{3,9})[/\-. ,]*\d{2,4}\b"
+    r"|\b\d{4}[/\-.]\d{1,2}[/\-.]\d{1,2}\b"
+    r"|\b\d{8}\b"
+)
 _TIME = re.compile(r"\s+\d{1,2}:\d{2}(?::\d{2})?\s*(?:am|pm)?$", re.IGNORECASE)
 
 
@@ -177,7 +189,7 @@ _ACCOUNT = re.compile(
     re.IGNORECASE,
 )
 _PERIOD = re.compile(
-    r"^\s*(?:statement\s+period|period|from)\b[ \t]*[:\-]?[ \t]*(.+?)\s+(?:to|-|–)\s+(.+?)\s*$",
+    r"^\s*(?:statement\s+(?:period|from)|period|from)\b[ \t]*[:\-]?[ \t]*(.+?)\s+(?:to|-|–)[ \t]*:?[ \t]*(.+?)\s*$",
     re.IGNORECASE | re.MULTILINE,
 )
 
@@ -217,10 +229,21 @@ def normalize(rows: list[RawRow], header_text: str = "") -> NormalizedStatement:
     typed_by_sign: list[Decimal] = []
 
     for n, row in enumerate(rows, start=1):
-        date_text = row[cols["date"]]
-        if not any(ch.isdigit() for ch in date_text):
+        date_text = _TIME.sub("", " ".join(row[cols["date"]].split()))
+        dates = _DATE_LIKE.findall(date_text)
+        if not dates:
             skipped.append(SkippedRow(row, "no date"))
             continue
+        if re.search(r"[A-Za-z]{2,}", _DATE_LIKE.sub("", date_text)):
+            # "From : 01/01/2026", "Generated on 13/10/2026": a label from a page header or
+            # footer that landed in the date column, not a transaction date.
+            skipped.append(SkippedRow(row, "date column holds a label, not a transaction date"))
+            continue
+        if len(dates) > 1:
+            raise NormalizationError(
+                f"row {n}: {len(dates)} dates in one cell ({dates[0]} … {dates[-1]}), so several transactions "
+                "were read as one row. The table probably has no lines between rows."
+            )
         try:
             date = parse_date(date_text)
             amount, txn_type = _amount_and_type(row, cols, typed_by_sign)

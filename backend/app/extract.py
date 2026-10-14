@@ -8,8 +8,11 @@ Only structural cleanup happens here:
 - Text above the table (bank name, account details) is skipped by finding the
   header row.
 - Header rows repeated on later PDF pages are dropped.
-- A line holding only wrapped description text (first cell empty, exactly one
-  cell filled) is joined onto the row above.
+- A line holding only wrapped text (first cell empty, exactly one cell filled,
+  and that cell a text column such as the narration) is joined onto the row above.
+- PDF tables drawn with lines between columns but none between rows (HDFC does
+  this) are read by text position instead, since a table reader would put every
+  row of a page into one cell.
 - Completely empty rows are dropped.
 
 Rows that are in the table but are not transactions (opening-balance rows,
@@ -30,7 +33,7 @@ import pdfplumber
 from pdfminer.pdfdocument import PDFPasswordIncorrect
 from pdfplumber.utils.exceptions import PdfminerException
 
-from app.headers import is_header_hint
+from app.headers import column_role, is_header_hint
 
 RawRow = dict[str, str]
 
@@ -100,7 +103,8 @@ def extract_header_text(path: str | Path, password: str | None = None) -> str:
                 for words in _lines(page.extract_words()):
                     if _is_header([c.text for c in _split_on_gaps(words)]):
                         return "\n".join(lines)
-                    lines.append(" ".join(w["text"] for w in words))
+                    # Wide gaps become 3 spaces, which parse_header treats as a field break.
+                    lines.append("   ".join(c.text for c in _split_on_gaps(words)))
         return "\n".join(lines)
     raise ExtractionError(f"unsupported file type: {path.name}")
 
@@ -139,9 +143,29 @@ def extract_pdf(
     with open_pdf(path, password) as pdf:
         if mode in ("auto", "tables"):
             grid = [row for page in pdf.pages for table in page.extract_tables() for row in table]
-            if any(_is_header([_clean(c) for c in row]) for row in grid) or mode == "tables":
+            if mode == "tables":
                 return _rows_from_grid(grid, path.name)
+            if any(_is_header([_clean(c) for c in row]) for row in grid) and not _has_stacked_rows(grid):
+                rows = _rows_from_grid(grid, path.name)
+                if rows:  # a header with nothing under it: the table reader missed the body
+                    return rows
         return _rows_from_grid(_text_grid(pdf), path.name)
+
+
+def _has_stacked_rows(grid: list) -> bool:
+    """True when the table reader merged many rows into one: tables with lines
+    between columns but not between rows come out as one tall cell per column,
+    holding every row of the page. Dates never wrap, so a date cell with several
+    lines gives it away."""
+    header_at = next((i for i, row in enumerate(grid) if _is_header([_clean(c) for c in row])), None)
+    if header_at is None:
+        return False
+    date_columns = [i for i, c in enumerate(grid[header_at]) if (column_role(_clean(c)) or ("",))[0] == "date"]
+    return any(
+        i < len(row) and row[i] and sum(1 for line in str(row[i]).splitlines() if line.strip()) > 1
+        for row in grid[header_at + 1 :]
+        for i in date_columns
+    )
 
 
 @dataclass
@@ -154,22 +178,102 @@ class _Cell:
 def _text_grid(pdf: pdfplumber.PDF) -> list[list[str]]:
     """Rebuild table rows from words and their positions.
 
-    Column spans come from the header line. A word goes to the column whose
-    header it sits under, which handles numbers aligned under right-aligned
-    headers. Otherwise it goes to the last column starting at or left of it,
-    which handles long descriptions running past their header.
+    Column spans come from the vertical rules between columns when the page
+    draws them, otherwise from the header line. Without rules, a word goes to
+    the column whose header it sits under (numbers under right-aligned
+    headers), else to the last column starting at or left of it (descriptions
+    running past their header).
+
+    Wrapped narration lines are joined here, where positions are known: if the
+    line above runs right up to the column's edge, the text was broken
+    mid-word ("…-FO" / "OD ORDER") and is joined without a space.
     """
     grid: list[list[str]] = []
     columns: list[_Cell] | None = None
+    main_header: list[str] | None = None  # the statement's column header, the first one seen
+    bounded = False  # columns come from drawn rules, so their right edges are exact
     for page in pdf.pages:
-        for words in _lines(page.extract_words()):
-            cells = _split_on_gaps(words)
-            if _is_header([c.text for c in cells]):
-                columns = cells  # re-read on every page in case the layout shifts
-                grid.append([c.text for c in cells])
-            elif columns is not None:
-                grid.append(_assign(words, columns))
+        last_line: dict[int, dict] = {}  # column -> last word of the previous data line; text never wraps across pages
+        lines = _lines(page.extract_words())
+        bounds = _column_lines(page)
+        cells = [_split_on_lines(words, bounds) if bounds else _split_on_gaps(words) for words in lines]
+        texts_per_line = [[c.text for c in line] for line in cells]
+        # Only the statement's own header starts the table. Another header-like line
+        # (a summary block's "Opening Balance  Dr Count  Cr Count") is just a row.
+        is_header = [
+            _is_header(t) and (main_header is None or t == main_header) for t in texts_per_line
+        ]
+        if main_header is None and True in is_header:
+            main_header = texts_per_line[is_header.index(True)]
+        # On a page that repeats the header, everything above it is page furniture
+        # (bank name, account details printed on every page), not table rows. Pages
+        # that don't repeat it keep everything; furniture there is skipped later
+        # because it has no transaction date.
+        start = is_header.index(True) if True in is_header else 0
+        for words, line_cells, header in zip(lines[start:], cells[start:], is_header[start:]):
+            if header:
+                columns, bounded, last_line = line_cells, bool(bounds), {}  # positions re-read on every page
+                grid.append([c.text for c in line_cells])
+                continue
+            if columns is None:
+                continue
+            parts = _assign(words, columns)
+            texts = [" ".join(w["text"] for w in part) for part in parts]
+            filled = [i for i, t in enumerate(texts) if t]
+            if last_line and not texts[0] and len(filled) == 1 and _is_text_column(columns[filled[0]].text):
+                i = filled[0]
+                joiner = "" if bounded and _runs_to_edge(last_line.get(i), parts[i], columns[i]) else " "
+                grid[-1][i] = f"{grid[-1][i]}{joiner}{texts[i]}" if grid[-1][i] else texts[i]
+                last_line[i] = parts[i][-1]
+                continue
+            grid.append(texts)
+            last_line = {i: part[-1] for i, part in enumerate(parts) if part}
     return grid
+
+
+def _runs_to_edge(last: dict | None, next_words: list[dict], column: _Cell) -> bool:
+    """Was the line above broken mid-word? Only a long unbroken token (a UPI
+    string, say) gets split across lines, and then the line is filled so far
+    that not even the next character would have fitted. A line wrapped at a
+    space usually ends with a short word, or with room to spare."""
+    if last is None or not next_words:
+        return False
+    padding = max(next_words[0]["x0"] - column.x0, 0)  # assume the right padding matches the left
+    inner_width = column.x1 - column.x0 - 2 * padding
+    if last["x1"] - last["x0"] < 0.6 * inner_width:
+        return False
+    first = next_words[0]
+    next_char_width = (first["x1"] - first["x0"]) / max(len(first["text"]), 1)
+    leftover = column.x1 - padding - last["x1"]
+    return leftover < next_char_width + 1
+
+
+def _column_lines(page: pdfplumber.page.Page, min_length: float = 72) -> list[float]:
+    """x positions of the vertical rules drawn between columns, if the page has
+    them. Rules are often drawn as one short segment per row, so segments at the
+    same x are added up; only rules at least an inch long in total count."""
+    lengths: dict[float, float] = {}
+    for edge in page.vertical_edges:
+        x = round(edge["x0"])
+        near = next((k for k in lengths if abs(k - x) <= 1), x)
+        lengths[near] = lengths.get(near, 0) + edge["height"]
+    xs = sorted(x for x, length in lengths.items() if length >= min_length)
+    return xs if len(xs) >= 3 else []  # at least two columns' worth of rules
+
+
+def _split_on_lines(words: list[dict], bounds: list[float]) -> list[_Cell]:
+    """Group a line's words by the column rules they fall between. Exact, even
+    when headers nearly touch ("Withdrawal Amt." "Deposit Amt.")."""
+    cells: dict[int, list[dict]] = {}
+    for w in words:
+        middle = (w["x0"] + w["x1"]) / 2
+        i = bisect.bisect_right(bounds, middle) - 1
+        if 0 <= i < len(bounds) - 1:
+            cells.setdefault(i, []).append(w)
+    return [
+        _Cell(" ".join(w["text"] for w in group), bounds[i], bounds[i + 1])
+        for i, group in sorted(cells.items())
+    ]
 
 
 def _lines(words: list[dict], tolerance: float = 3) -> list[list[dict]]:
@@ -193,14 +297,15 @@ def _split_on_gaps(words: list[dict], gap: float = 6) -> list[_Cell]:
     return cells
 
 
-def _assign(words: list[dict], columns: list[_Cell]) -> list[str]:
+def _assign(words: list[dict], columns: list[_Cell]) -> list[list[dict]]:
+    """The words of one line, grouped by column."""
     starts = [c.x0 for c in columns]
-    out: list[list[str]] = [[] for _ in columns]
+    out: list[list[dict]] = [[] for _ in columns]
     for w in words:
         under = [i for i, c in enumerate(columns) if w["x0"] < c.x1 and w["x1"] > c.x0]
         i = under[0] if under else max(bisect.bisect_right(starts, w["x0"]) - 1, 0)
-        out[i].append(w["text"])
-    return [" ".join(parts) for parts in out]
+        out[i].append(w)
+    return out
 
 
 # --- Shared cleanup -----------------------------------------------------------
@@ -216,6 +321,13 @@ def _is_header(cells: list[str]) -> bool:
     and data rows."""
     filled = [c for c in cells if c]
     return sum(is_header_hint(c) for c in filled) >= 3 and not any(ch.isdigit() for c in filled for ch in c)
+
+
+def _is_text_column(name: str) -> bool:
+    """Wrapped text only continues in text columns (narration, reference); a lone
+    figure under Balance is a footer or a page number, not the rest of a row."""
+    role = column_role(name)
+    return role is None or role[0] == "description"
 
 
 def _column_names(cells: list[str]) -> list[str]:
@@ -243,7 +355,7 @@ def _rows_from_grid(grid: list, source: str) -> list[RawRow]:
             continue  # header repeated on a later page, or a blank row
         cells = (cells + [""] * len(names))[: len(names)]
         filled = [i for i, c in enumerate(cells) if c]
-        if rows and not cells[0] and len(filled) == 1:
+        if rows and not cells[0] and len(filled) == 1 and _is_text_column(names[filled[0]]):
             key = names[filled[0]]
             rows[-1][key] = f"{rows[-1][key]} {cells[filled[0]]}".strip()
             continue

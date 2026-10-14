@@ -65,7 +65,7 @@ export default function SpendingChart({ analytics }: { analytics: Analytics }) {
               <YAxis
                 type="category"
                 dataKey="category"
-                width={84}
+                width={112}
                 tickLine={false}
                 axisLine={false}
                 tick={{ fill: colors.ink2, fontSize: 13 }}
@@ -84,7 +84,7 @@ export default function SpendingChart({ analytics }: { analytics: Analytics }) {
         )}
       </div>
       <figcaption className="mt-3 text-xs text-muted">
-        Debits only. Transfers (to people, your own accounts, card bills) aren&apos;t counted as spending; refunds are
+        Debits only. Transfers (to people, your own accounts, card bills) and investments aren&apos;t counted as spending; refunds are
         money in and don&apos;t reduce it.
       </figcaption>
     </figure>

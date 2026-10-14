@@ -58,7 +58,7 @@
           "type": "number"
         },
         "total_spending": {
-          "description": "Debits except Transfer; uncategorized debits count as Other. Refunds are credits, so they are not netted against spending",
+          "description": "Debits except Transfer and Investments; uncategorized debits count as Other. Refunds are credits, so they are not netted against spending",
           "minimum": 0,
           "title": "Total Spending",
           "type": "number"
@@ -184,6 +184,13 @@
         "Food",
         "Travel",
         "Shopping",
+        "Health",
+        "Entertainment",
+        "Education",
+        "Insurance",
+        "Fees & Taxes",
+        "Loans & EMI",
+        "Investments",
         "Transfer",
         "Cash",
         "Other"

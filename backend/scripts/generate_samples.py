@@ -314,6 +314,74 @@ def write_sahyadri_pdf(path: Path, spec: Spec, rows: list[Row], rng: random.Rand
          wrap_col=1, right_cols=[2, 3], bold_rows=bold_rows)
 
 
+def write_harbour_pdf(path: Path, spec: Spec, rows: list[Row], rng: random.Random) -> None:
+    """Laid out like HDFC: lines between columns but none between rows, so a table
+    reader sees each column of a page as one tall cell holding every row; DD/MM/YY
+    dates; the account details repeat at the top of every page; a summary block with
+    figures follows the table. Later pages don't repeat the column header.
+    """
+    styles = getSampleStyleSheet()
+    cell = styles["BodyText"].clone("cell", fontSize=7.5, leading=9)
+    details = [
+        f"Name : {spec.holder_name}",
+        f"Account No : {spec.account_number}",
+        f"Statement From : {spec.period_start:%d/%m/%Y} To : {spec.period_end:%d/%m/%Y}",
+    ]
+    # Like HDFC: a second "From : … To : …" in the date column's position, under a
+    # "Statement of account" title, on every page.
+    period_block = ("Statement of account", f"From : {spec.period_start:%d/%m/%Y}    To : {spec.period_end:%d/%m/%Y}")
+
+    def page_header(canvas, doc) -> None:
+        canvas.setFont("Helvetica-Bold", 11)
+        canvas.drawString(15 * mm, A4[1] - 15 * mm, spec.bank_name)
+        canvas.setFont("Helvetica", 8)
+        canvas.drawRightString(A4[0] - 15 * mm, A4[1] - 15 * mm, f"Page No .: {doc.page}")
+        for i, line in enumerate(details):
+            canvas.drawString(15 * mm, A4[1] - (22 + 4.5 * i) * mm, line)
+        canvas.drawString(110 * mm, A4[1] - 22 * mm, period_block[0])
+        canvas.drawString(110 * mm, A4[1] - 26.5 * mm, period_block[1])
+
+    table = [["Date", "Narration", "Chq./Ref.No.", "Value Dt", "Withdrawal Amt.", "Deposit Amt.", "Closing Balance"]]
+    for r in rows:
+        day = f"{r.event.date:%d/%m/%y}"
+        amount = indian(r.event.amount)
+        table.append([
+            day, Paragraph(r.description, cell), f"{rng.randrange(10**15):016d}", day,
+            amount if r.is_debit else "", "" if r.is_debit else amount, indian(r.balance),
+        ])
+    # repeatRows=0: later pages don't repeat the column header, so nothing marks
+    # where their page header ends and the rows begin.
+    t = Table(table, colWidths=[15 * mm, 60 * mm, 27 * mm, 15 * mm, 22 * mm, 22 * mm, 24 * mm], repeatRows=0)
+    t.setStyle(TableStyle([
+        ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 7.5),
+        ("FONT", (0, 1), (-1, -1), "Helvetica", 7.5),
+        ("BOX", (0, 0), (-1, -1), 0.5, colors.black),
+        ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.black),
+        ("LINEAFTER", (0, 0), (-2, -1), 0.25, colors.grey),  # column lines only, nothing between rows
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (4, 1), (-1, -1), "RIGHT"),
+        ("TOPPADDING", (0, 1), (-1, -1), 1),
+        ("BOTTOMPADDING", (0, 1), (-1, -1), 1),
+    ]))
+
+    debits = [r.event.amount for r in rows if r.is_debit]
+    credits = [r.event.amount for r in rows if not r.is_debit]
+    summary = Table(
+        [["Opening Balance", "Dr Count", "Cr Count", "Debits", "Credits", "Closing Bal"],
+         [indian(spec.opening), str(len(debits)), str(len(credits)), indian(sum(debits, Decimal(0))),
+          indian(sum(credits, Decimal(0))), indian(rows[-1].balance)]],
+        colWidths=[30 * mm] * 6,
+    )
+    summary.setStyle(TableStyle([("FONT", (0, 0), (-1, -1), "Helvetica", 7.5), ("ALIGN", (0, 0), (-1, -1), "RIGHT")]))
+
+    doc = SimpleDocTemplate(
+        str(path), pagesize=A4, title=f"{spec.bank_name} statement", author=spec.bank_name,
+        leftMargin=15 * mm, rightMargin=15 * mm, topMargin=40 * mm, bottomMargin=15 * mm,
+    )
+    story = [t, Spacer(1, 6 * mm), Paragraph("STATEMENT SUMMARY :-", styles["Normal"]), summary]
+    doc.build(story, onFirstPage=page_header, onLaterPages=page_header)
+
+
 # --- The statements -----------------------------------------------------------
 
 RAMESH = "Masked phone digits look like an amount or reference; it's a payment to a person (transfer), not a merchant"
@@ -450,9 +518,38 @@ def specs() -> list[Spec]:
             ],
         ),
     ]
+    base.append(Spec(
+        stem="harbour_q1-2026", suffix="pdf",
+        bank_name="Harbour Bank Ltd", holder_name="Arjun Mehta", account_number="50100483526402",  # printed unmasked
+        period_start=dt.date(2026, 1, 1), period_end=dt.date(2026, 3, 31),
+        opening=Decimal("905000.00"), salary=Decimal("164000"), rent=Decimal("42000"),
+        employer="LATTICE SYSTEMS PVT LTD",
+        style={
+            "salary": "NEFT CR-LTCE0000123-{emp}-SALARY {mon}",
+            "rent": "IMPS-{ref}-ANIL KAPOOR-HOUSE RENT {mon}",
+            "electricity": "BILLPAY-TATA POWER DDL-{ref6}",
+            "atm": "NWD-XXXXXX6402-ATM CONNAUGHT PLACE NEW DELHI",
+            "grocery": "UPI-BLINKIT-blinkit@okaxis-{ref}-GROCERY ORDER",
+            "amazon": "UPI-AMAZON PAY-amazonpay@apl-{ref}-ORDER PAYMENT",
+            "swiggy": "UPI-SWIGGY-swiggy@icici-{ref}-FOOD ORDER",
+            "uber": "UPI-UBER INDIA-uber@paytm-{ref}-RIDE",
+        },
+        writer=write_harbour_pdf,
+        extras=[
+            Event(dt.date(2026, 1, 8), "person", Decimal("1500"), "debit", Category.TRANSFER,
+                  "UPI/9876xxxx/RAMESH", trap=RAMESH),
+            Event(dt.date(2026, 2, 10), "refund", Decimal("1899"), "credit", Category.REFUND,
+                  "AMZN REFUND", trap=REFUND),
+            Event(dt.date(2026, 2, 14), "self", Decimal("30000"), "debit", Category.TRANSFER,
+                  "NEFT-SELF-SAVINGS", trap=SELF),
+            Event(dt.date(2026, 3, 12), "huge", Decimal("600000"), "debit", Category.TRANSFER,
+                  "RTGS DR-HOMESTEAD BUILDERS-FLAT BOOKING ADVANCE", trap=HUGE,
+                  unusual_reason="One-off outgoing transfer of 6,00,000.00, about 3.7x the monthly salary"),
+        ],
+    ))
     # The Sahyadri layout again, password-protected the way many Indian banks send
     # statements: first four letters of the holder's name + day and month of birth.
-    sahyadri = base[-1]
+    sahyadri = next(spec for spec in base if spec.stem.startswith("sahyadri"))
     return [*base, replace(sahyadri, stem="sahyadri_feb-mar2026_locked", password="THOM0512")]
 
 

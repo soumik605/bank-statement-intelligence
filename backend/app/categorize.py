@@ -23,94 +23,103 @@ from app.schema import Category, Transaction, TransactionType
 
 log = logging.getLogger(__name__)
 
-# Order is priority: the first keyword found in the description wins.
-KEYWORDS: dict[str, Category] = {
-    # Money coming back. Checked first so the merchant keyword below never claims it.
-    "REFUND": Category.REFUND,
-    "REFD": Category.REFUND,
-    "REVERSAL": Category.REFUND,
-    "REVERSED": Category.REFUND,
-    "REV": Category.REFUND,
-    "CHARGEBACK": Category.REFUND,
-    "CASHBACK": Category.REFUND,
+# Order is priority: the first keyword found in the description wins. Groups
+# that must beat others come first; each group says why.
+_GROUPS: list[tuple[Category, list[str]]] = [
+    # Money coming back. First, so the merchant keyword never claims it.
+    (Category.REFUND, ["REFUND", "REFD", "REVERSAL", "REVERSED", "REV", "CHARGEBACK", "CASHBACK"]),
     # Salary before generic transfer words: "SALARY TRANSFER" is salary.
-    "SALARY": Category.SALARY,
-    "SAL": Category.SALARY,
-    "PAYROLL": Category.SALARY,
-    # Moving the holder's own money. Before utilities so "CREDIT CARD BILL PAYMENT" isn't a bill.
-    "SELF": Category.TRANSFER,
-    "OWN A/C": Category.TRANSFER,
-    "OWN ACCOUNT": Category.TRANSFER,
-    "CREDIT CARD": Category.TRANSFER,
-    "CC PAYMENT": Category.TRANSFER,
-    # Other income.
-    "INTEREST": Category.INCOME,
-    "INT PD": Category.INCOME,
-    "DIVIDEND": Category.INCOME,
-    "MATURITY": Category.INCOME,
+    (Category.SALARY, ["SALARY", "SAL", "PAYROLL", "STIPEND"]),
+    # The holder's own money. Before utilities, so "CREDIT CARD BILL PAYMENT" isn't a bill.
+    (Category.TRANSFER, ["SELF", "OWN A/C", "OWN ACCOUNT", "CREDIT CARD", "CC PAYMENT", "CARD PAYMENT"]),
+    # Before income, so "FIXED DEPOSIT MATURITY" is your own money back, not income.
+    # (No "NACH": banks use it for SIPs and EMIs alike.)
+    (Category.INVESTMENTS, [
+        "SIP", "MUTUAL FUND", "MUTUAL FUNDS", "ZERODHA", "GROWW", "UPSTOX", "KUVERA", "PAYTM MONEY",
+        "INDIAN CLEARING CORP", "ICCL", "CAMS", "KFINTECH", "BSE STAR MF", "NSE CLEARING", "PPF", "NPS",
+        "FIXED DEPOSIT", "RECURRING DEPOSIT", "SOVEREIGN GOLD BOND",
+    ]),
+    (Category.INCOME, ["INTEREST", "INT PD", "INT.PD", "SB INT", "DIVIDEND", "DIV", "MATURITY", "BONUS"]),
+    # Specific loan words only: a bare "LOAN" also fires on "PERSONAL LOAN" to a friend.
+    (Category.LOANS, [
+        "EMI", "LOAN EMI", "LOAN REPAYMENT", "LOAN RECOVERY", "LOAN INSTALLMENT", "LOAN DISBURSEMENT",
+        "HOME LOAN", "CAR LOAN", "EDUCATION LOAN", "BAJAJ FINANCE", "BAJAJ FIN", "HOME CREDIT",
+    ]),
+    # After income, so an "INSURANCE ... MATURITY" credit is income. (No bare "PREMIUM":
+    # that's YouTube Premium too.)
+    (Category.INSURANCE, [
+        "INSURANCE", "LIC", "LIFE INSURANCE", "HDFC LIFE", "ICICI PRU", "ICICI LOMBARD", "SBI LIFE", "MAX LIFE",
+        "TATA AIA", "STAR HEALTH", "NIVA BUPA", "CARE HEALTH", "POLICYBAZAAR", "ACKO", "DIGIT INSURANCE",
+    ]),
+    (Category.FEES, [
+        "GST", "TDS", "INCOME TAX", "ADVANCE TAX", "PROFESSIONAL TAX", "PROPERTY TAX", "CBDT", "STAMP DUTY",
+        "CHARGES", "CHRG", "CHGS", "SMS CHARGES", "ANNUAL FEE", "LATE FEE", "PROCESSING FEE", "PENALTY",
+        "PENAL", "MIN BAL", "NON MAINT",
+    ]),
     # Before the "TRANSFER" catch-all: "RENT TRANSFER TO ..." is rent.
-    "RENT": Category.RENT,
-    "ELECTRICITY": Category.UTILITIES,
-    "BESCOM": Category.UTILITIES,
-    "MSEDCL": Category.UTILITIES,
-    "KSEB": Category.UTILITIES,
-    "TATA POWER": Category.UTILITIES,
-    "TORRENT POWER": Category.UTILITIES,
-    "ADANI ELECTRICITY": Category.UTILITIES,
-    "WATER BILL": Category.UTILITIES,
-    "GAS BILL": Category.UTILITIES,
-    "BROADBAND": Category.UTILITIES,
-    "RECHARGE": Category.UTILITIES,
-    "BBPS": Category.UTILITIES,
-    "BILLPAY": Category.UTILITIES,
-    "BILL PAYMENT": Category.UTILITIES,
-    # Before "UBER" so Uber Eats is food, not travel.
-    "UBER EATS": Category.FOOD,
-    "SWIGGY": Category.FOOD,
-    "INSTAMART": Category.FOOD,
-    "ZOMATO": Category.FOOD,
-    "BIGBASKET": Category.FOOD,
-    "BLINKIT": Category.FOOD,
-    "ZEPTO": Category.FOOD,
-    "DMART": Category.FOOD,
-    "RELIANCE FRESH": Category.FOOD,
-    "GROCERY": Category.FOOD,
-    "DOMINOS": Category.FOOD,
-    "MCDONALDS": Category.FOOD,
-    "STARBUCKS": Category.FOOD,
-    "UBER": Category.TRAVEL,
-    "OLA": Category.TRAVEL,
-    "RAPIDO": Category.TRAVEL,
-    "IRCTC": Category.TRAVEL,
-    "INDIGO": Category.TRAVEL,
-    "MAKEMYTRIP": Category.TRAVEL,
-    "REDBUS": Category.TRAVEL,
-    "FASTAG": Category.TRAVEL,
-    "PETROL": Category.TRAVEL,
-    "FUEL": Category.TRAVEL,
-    "HPCL": Category.TRAVEL,
-    "BPCL": Category.TRAVEL,
-    "IOCL": Category.TRAVEL,
-    "AMAZON": Category.SHOPPING,
-    "AMZN": Category.SHOPPING,
-    "FLIPKART": Category.SHOPPING,
-    "MYNTRA": Category.SHOPPING,
-    "AJIO": Category.SHOPPING,
-    "NYKAA": Category.SHOPPING,
-    "MEESHO": Category.SHOPPING,
-    "ATM": Category.CASH,
-    "ATW": Category.CASH,
-    "CASH WDL": Category.CASH,
-    "CASH WITHDRAWAL": Category.CASH,
-    "CASH DEP": Category.CASH,
-    "CASH DEPOSIT": Category.CASH,
+    (Category.RENT, ["RENT", "HOUSE RENT", "NOBROKER"]),
+    (Category.UTILITIES, [
+        "ELECTRICITY", "BESCOM", "MSEDCL", "KSEB", "TATA POWER", "TORRENT POWER", "ADANI ELECTRICITY", "CESC",
+        "WBSEDCL", "BSES", "TPDDL", "TANGEDCO", "TNEB", "UPPCL", "PSPCL", "JVVNL", "APSPDCL",
+        "WATER BILL", "GAS BILL", "MAHANAGAR GAS", "INDRAPRASTHA GAS", "IGL", "PIPED GAS", "INDANE",
+        "HP GAS", "BHARAT GAS", "LPG", "BROADBAND", "FIBERNET", "ACT FIBERNET", "HATHWAY", "AIRTEL", "JIO",
+        "VODAFONE", "BSNL", "TATA PLAY", "DISH TV", "D2H",
+    ]),
+    # Before shopping, so "AMAZON PHARMACY" is health.
+    (Category.HEALTH, [
+        "PHARMACY", "PHARMACIES", "MEDICAL STORE", "MEDICAL STORES", "MEDICAL HALL", "MEDICALS", "CHEMIST",
+        "APOLLO", "MEDPLUS", "PHARMEASY", "NETMEDS", "1MG", "HOSPITAL", "CLINIC", "DIAGNOSTIC", "DIAGNOSTICS",
+        "PATHLABS", "PATHOLOGY", "THYROCARE", "PRACTO", "DENTAL",
+    ]),
+    (Category.EDUCATION, [
+        "SCHOOL", "COLLEGE", "UNIVERSITY", "TUITION", "COACHING", "EXAM FEE", "BYJUS", "UNACADEMY",
+        "VEDANTU", "PHYSICSWALLAH", "UPGRAD", "SIMPLILEARN", "COURSERA", "UDEMY",
+    ]),
+    # Before shopping, so "AMAZON PRIME" is entertainment.
+    (Category.ENTERTAINMENT, [
+        "NETFLIX", "HOTSTAR", "JIOHOTSTAR", "DISNEY", "PRIME VIDEO", "AMAZON PRIME", "SPOTIFY", "YOUTUBE",
+        "ZEE5", "SONYLIV", "JIOCINEMA", "GAANA", "WYNK", "AUDIBLE", "BOOKMYSHOW", "PVR", "INOX", "CINEPOLIS",
+        "STEAM", "PLAYSTATION", "DREAM11",
+    ]),
+    # Before "UBER", so Uber Eats is food.
+    (Category.FOOD, [
+        "UBER EATS", "SWIGGY", "INSTAMART", "ZOMATO", "DUNZO", "BIGBASKET", "BLINKIT", "ZEPTO", "DMART",
+        "JIOMART", "RELIANCE FRESH", "SPENCERS", "MORE RETAIL", "NATURES BASKET", "BIG BAZAAR", "STAR BAZAAR",
+        "LICIOUS", "FRESHTOHOME", "COUNTRY DELIGHT", "MILKBASKET", "DAIRY", "KIRANA", "SUPERMARKET",
+        "GROCERY", "GROCERIES", "DOMINOS", "DOMINO", "PIZZA HUT", "KFC", "MCDONALDS", "BURGER KING",
+        "STARBUCKS", "CHAAYOS", "CAFE COFFEE DAY", "CCD", "HALDIRAM", "HALDIRAMS", "BARBEQUE NATION",
+        "RESTAURANT", "CAFE", "BAKERY", "BAKERS", "SWEETS", "DHABA", "MOMO", "MOMOS",
+    ]),
+    # "TOTO" is an e-rickshaw. (No bare "METRO": Metro Cash & Carry is a shop.)
+    (Category.TRAVEL, [
+        "UBER", "OLA", "RAPIDO", "BLUSMART", "NAMMA YATRI", "TOTO", "IRCTC", "INDIANRAILWAYS",
+        "INDIAN RAILWAYS", "DMRC", "BMRCL", "METRO RAIL", "REDBUS", "ABHIBUS", "MAKEMYTRIP", "GOIBIBO",
+        "CLEARTRIP", "YATRA", "IXIGO", "EASEMYTRIP", "INDIGO", "AIR INDIA", "VISTARA", "SPICEJET",
+        "AKASA AIR", "OYO", "AIRBNB", "FASTAG", "TOLL", "NHAI", "PARKING", "PETROL", "FUEL", "HPCL", "BPCL",
+        "IOCL", "INDIAN OIL", "SHELL", "NAYARA", "FILLING STATION",
+    ]),
+    (Category.SHOPPING, [
+        "AMAZON", "AMZN", "FLIPKART", "MYNTRA", "AJIO", "NYKAA", "MEESHO", "TATA CLIQ", "SNAPDEAL",
+        "DECATHLON", "IKEA", "CROMA", "RELIANCE DIGITAL", "RELIANCE TRENDS", "VIJAY SALES", "LIFESTYLE",
+        "SHOPPERS STOP", "PANTALOONS", "WESTSIDE", "MAX FASHION", "ZARA", "H&M", "UNIQLO", "LENSKART",
+        "PEPPERFRY", "URBAN LADDER", "PURPLLE", "FIRSTCRY", "BEWAKOOF",
+    ]),
+    # Generic bill words, after every merchant: "FASTAG RECHARGE" is travel, "TATA POWER BILLPAY" is
+    # already utilities, and a bare "MOBILE RECHARGE" still lands here.
+    (Category.UTILITIES, ["RECHARGE", "POSTPAID", "BBPS", "BILLPAY", "BILL PAYMENT"]),
+    (Category.CASH, ["ATM", "ATW", "NWD", "CDM", "CASH WDL", "CASH WITHDRAWAL", "CASH DEP", "CASH DEPOSIT"]),
     # Catch-all, last: a transfer with nothing more specific in it.
-    "TRANSFER": Category.TRANSFER,
-    "TRF": Category.TRANSFER,
-}
+    (Category.TRANSFER, ["TRANSFER", "TRF"]),
+]
+
+KEYWORDS: dict[str, Category] = {}
+for _category, _words in _GROUPS:
+    for _word in _words:
+        KEYWORDS.setdefault(_word, _category)  # a word listed twice keeps its first, higher-priority group
+
 
 # The only direction each category can take. Categories not listed (Transfer,
-# Cash, Other) go either way.
+# Cash, Loans & EMI, Investments, Other) go either way.
 DIRECTION: dict[Category, TransactionType] = {
     Category.SALARY: "credit",
     Category.INCOME: "credit",
@@ -120,6 +129,11 @@ DIRECTION: dict[Category, TransactionType] = {
     Category.FOOD: "debit",
     Category.TRAVEL: "debit",
     Category.SHOPPING: "debit",
+    Category.HEALTH: "debit",
+    Category.ENTERTAINMENT: "debit",
+    Category.EDUCATION: "debit",
+    Category.INSURANCE: "debit",
+    Category.FEES: "debit",
 }
 
 # Whole-word match: the keyword can't have a letter or digit right before or after it.
@@ -161,6 +175,14 @@ _CATEGORY_GUIDE = {
     Category.FOOD: "restaurants, food delivery, groceries, supermarkets",
     Category.TRAVEL: "cabs, trains, flights, buses, fuel, tolls",
     Category.SHOPPING: "online and retail shopping",
+    Category.HEALTH: "pharmacies, medical stores, doctors, hospitals, diagnostic labs",
+    Category.ENTERTAINMENT: "streaming subscriptions, movies, events, games",
+    Category.EDUCATION: "school and college fees, tuition, coaching, online courses",
+    Category.INSURANCE: "life, health, motor and other insurance premiums",
+    Category.FEES: "bank charges, penalties, annual fees, GST, TDS, income and property tax",
+    Category.LOANS: "loan EMIs and repayments (money out), loan disbursements (money in)",
+    Category.INVESTMENTS: "SIPs, mutual funds, stocks, fixed and recurring deposits, PPF, NPS; "
+                          "redemptions coming back in",
     Category.TRANSFER: "money to or from a person or another account: UPI/IMPS/NEFT to a name, "
                        "own accounts, gifts, loans, credit card bills, property payments",
     Category.CASH: "ATM withdrawals and cash deposits",

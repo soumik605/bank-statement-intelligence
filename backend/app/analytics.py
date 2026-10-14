@@ -1,9 +1,9 @@
 """Stage 4: summary numbers for a statement, computed with plain arithmetic.
 
 Spending rule:
-- Spending is debits only, minus Transfer. Transfers move money to people or
-  to other accounts, including the holder's own savings and credit card, so
-  counting them would double count or overstate spending.
+- Spending is debits only, minus Transfer and Investments. Transfers move money
+  to people or to other accounts, including the holder's own savings and credit
+  card, and investments set money aside; counting either would overstate spending.
 - Cash withdrawals count as spending: the money left the account to be spent.
 - Refunds are credits, so they're in total_credits and never reduce spending.
   A refund can't be reliably matched to the purchase it reverses.

@@ -6,6 +6,7 @@ import { UploadIcon } from "./icons";
 export const SAMPLES = [
   { name: "meridian_q1-2026.pdf", label: "Meridian Bank · PDF, 3 months" },
   { name: "sahyadri_feb-mar2026.pdf", label: "Sahyadri Gramin Bank · PDF, 2 months" },
+  { name: "harbour_q1-2026.pdf", label: "Harbour Bank · PDF, HDFC-style (no lines between rows)" },
   { name: "konark_jan2026.csv", label: "Konark Co-op Bank · CSV with Dr/Cr column" },
   { name: "northwind_jan2026.csv", label: "Northwind Bank · CSV, no account details" },
   { name: "sahyadri_feb-mar2026_locked.pdf", label: "Sahyadri · password-protected PDF (password THOM0512)" },

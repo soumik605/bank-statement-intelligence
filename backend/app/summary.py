@@ -59,7 +59,7 @@ def build_summary_input(statement: StatementInfo, analytics: Analytics, transact
         "net_flow": format_inr(analytics.net_flow),
         "net_flow_direction": "more came in than went out" if analytics.net_flow >= 0 else "more went out than came in",
         "total_spending": format_inr(analytics.total_spending),
-        "spending_excludes": "transfers to people and own accounts",
+        "spending_excludes": "transfers to people and own accounts, and investments",
         "top_spending_categories": [
             {
                 "category": c.value,

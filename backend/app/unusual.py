@@ -27,10 +27,13 @@ DUPLICATE_WINDOW = dt.timedelta(days=0)
 BALANCE_DROP_SHARE = 0.5  # one debit taking out more than half the balance
 
 # Expected, recurring, and big by nature: never flagged just for size.
-EXPECTED_CATEGORIES = frozenset({Category.SALARY, Category.RENT, Category.UTILITIES})
-# Transfers are left out of the median-multiple rule too. They aren't spending,
-# and big ones are caught by the round-number, first-time-payee and balance rules.
-SIZE_RULE_EXEMPT = EXPECTED_CATEGORIES | {Category.TRANSFER}
+EXPECTED_CATEGORIES = frozenset({
+    Category.SALARY, Category.RENT, Category.UTILITIES, Category.LOANS, Category.INSURANCE,
+})
+# Transfers and investments are left out of the median-multiple rule too. They
+# aren't spending, and big ones are caught by the round-number, first-time-payee
+# and balance rules.
+SIZE_RULE_EXEMPT = EXPECTED_CATEGORIES | {Category.TRANSFER, Category.INVESTMENTS}
 
 
 def payee_key(description: str) -> str:

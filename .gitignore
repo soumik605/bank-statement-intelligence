@@ -1,1 +1,5 @@
 .env
+# Local history database (holds statement data)
+data/*.db
+data/*.db-wal
+data/*.db-shm

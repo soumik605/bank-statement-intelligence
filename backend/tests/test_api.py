@@ -38,7 +38,9 @@ def test_analyze_sample(samples, stem):
     assert response.status_code == 200, response.text
     body = response.json()
 
-    assert set(body) == {"source_file", "account", "transactions", "summary", "unusual", "ai_summary", "skipped_rows"}
+    assert set(body) == {"analysis_id", "analyzed_at", "source_file", "account", "transactions", "summary",
+                         "unusual", "ai_summary", "skipped_rows"}
+    assert isinstance(body["analysis_id"], int)
     assert body["source_file"] == path.name
     assert body["account"] == truth["statement"]
     assert len(body["transactions"]) == body["summary"]["transaction_count"] == len(truth["rows"])

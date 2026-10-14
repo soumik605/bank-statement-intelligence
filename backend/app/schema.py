@@ -136,6 +136,10 @@ class AISummary(BaseModel):
 class AnalyzeResponse(BaseModel):
     """Everything POST /analyze returns for one statement."""
 
+    analysis_id: int | None = Field(
+        default=None, description="ID in the local history database; null if saving failed"
+    )
+    analyzed_at: dt.datetime | None = Field(default=None, description="When the analysis ran, UTC")
     source_file: str
     account: StatementInfo
     transactions: list[Transaction]
@@ -145,3 +149,27 @@ class AnalyzeResponse(BaseModel):
     skipped_rows: list[SkippedRowOut] = Field(
         default_factory=list, description="Table rows that weren't transactions: totals, opening balance, footers"
     )
+
+
+class HistoryItem(BaseModel):
+    """One past analysis, as listed in GET /history."""
+
+    id: int
+    analyzed_at: dt.datetime
+    source_file: str
+    file_sha256: str = Field(description="Fingerprint of the uploaded file; equal values mean the same file")
+    bank_name: str | None
+    account_number: str | None
+    period_start: dt.date
+    period_end: dt.date
+    transaction_count: int
+    total_credits: Money
+    total_debits: Money
+    net_flow: Money
+    unusual_count: int
+    ai_summary_source: Literal["llm", "template"]
+
+
+class HistoryPage(BaseModel):
+    items: list[HistoryItem] = Field(description="Newest first")
+    total: int = Field(description="All saved analyses, not just this page")

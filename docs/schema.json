@@ -99,6 +99,33 @@
     "AnalyzeResponse": {
       "description": "Everything POST /analyze returns for one statement.",
       "properties": {
+        "analysis_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "ID in the local history database; null if saving failed",
+          "title": "Analysis Id"
+        },
+        "analyzed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "When the analysis ran, UTC",
+          "title": "Analyzed At"
+        },
         "source_file": {
           "title": "Source File",
           "type": "string"

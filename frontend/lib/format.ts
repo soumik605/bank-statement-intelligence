@@ -21,3 +21,14 @@ export function formatDate(iso: string): string {
   const [y, m, d] = iso.split("-");
   return `${d} ${MONTHS[Number(m) - 1]} ${y}`;
 }
+
+// "2026-10-14T04:05:00Z" -> "14 Oct 2026, 9:35 am" in the viewer's own time zone.
+export function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}

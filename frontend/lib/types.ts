@@ -44,6 +44,8 @@ export interface Analytics {
 }
 
 export interface AnalyzeResponse {
+  analysis_id: number | null; // null if it couldn't be saved to history
+  analyzed_at: string | null; // ISO 8601, UTC
   source_file: string;
   account: StatementInfo;
   transactions: Transaction[];
@@ -51,4 +53,26 @@ export interface AnalyzeResponse {
   unusual: Transaction[];
   ai_summary: { text: string; source: "llm" | "template"; unsupported_numbers: string[] };
   skipped_rows: { row: Record<string, string>; reason: string }[];
+}
+
+export interface HistoryItem {
+  id: number;
+  analyzed_at: string;
+  source_file: string;
+  file_sha256: string;
+  bank_name: string | null;
+  account_number: string | null;
+  period_start: string;
+  period_end: string;
+  transaction_count: number;
+  total_credits: number;
+  total_debits: number;
+  net_flow: number;
+  unusual_count: number;
+  ai_summary_source: "llm" | "template";
+}
+
+export interface HistoryPage {
+  items: HistoryItem[];
+  total: number;
 }

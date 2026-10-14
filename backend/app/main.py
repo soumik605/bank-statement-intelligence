@@ -9,14 +9,15 @@ import os
 import tempfile
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Query, Response, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import db
 from app.extract import ExtractionError
 from app.normalize import NormalizationError
 from app.pipeline import analyze_file
-from app.schema import AnalyzeResponse
+from app.schema import AnalyzeResponse, HistoryPage
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()],
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -92,7 +93,7 @@ def analyze(file: UploadFile = File(..., description="Bank statement, .csv or .p
         tmp.write(content)
         tmp_path = Path(tmp.name)
     try:
-        return analyze_file(tmp_path, source_file=name)
+        result = analyze_file(tmp_path, source_file=name)
     except (ExtractionError, NormalizationError) as e:
         raise _error(422, "could_not_parse", f"Couldn't read {name!r} as a bank statement: {e}") from None
     except Exception as e:
@@ -103,6 +104,35 @@ def analyze(file: UploadFile = File(..., description="Bank statement, .csv or .p
         raise _error(500, "internal_error", "Something went wrong while analyzing the file.") from None
     finally:
         tmp_path.unlink(missing_ok=True)
+
+    try:
+        return db.save_analysis(result, content)
+    except Exception:
+        # The analysis worked; don't throw it away because the history couldn't be written.
+        log.exception("couldn't save analysis of %s to history", name)
+        return result
+
+
+@app.get("/history", response_model=HistoryPage)
+def history(limit: int = Query(20, ge=1, le=100), offset: int = Query(0, ge=0)) -> HistoryPage:
+    """Past analyses, newest first."""
+    return db.list_analyses(limit, offset)
+
+
+@app.get("/history/{analysis_id}", response_model=AnalyzeResponse, responses={404: {"description": "No such analysis"}})
+def history_item(analysis_id: int) -> AnalyzeResponse:
+    """A past analysis exactly as it was returned; nothing is re-run."""
+    result = db.get_analysis(analysis_id)
+    if result is None:
+        raise _error(404, "analysis_not_found", f"No saved analysis with id {analysis_id}.")
+    return result
+
+
+@app.delete("/history/{analysis_id}", status_code=204, responses={404: {"description": "No such analysis"}})
+def delete_history_item(analysis_id: int) -> Response:
+    if not db.delete_analysis(analysis_id):
+        raise _error(404, "analysis_not_found", f"No saved analysis with id {analysis_id}.")
+    return Response(status_code=204)
 
 
 def _is_parse_failure(e: Exception) -> bool:

@@ -23,6 +23,7 @@ package = false
 
 [dependency-groups]
 dev = [
+    "pypdf>=6.20.1",
     "pytest>=9.1.1",
     "reportlab>=5.0.1",
 ]

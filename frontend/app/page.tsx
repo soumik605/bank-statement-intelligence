@@ -1,28 +1,28 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { analyze, fetchSample } from "@/lib/api";
+import { analyze, fetchSample, getAnalysis } from "@/lib/api";
 import type { AnalyzeResponse } from "@/lib/types";
+import HistoryList from "./components/HistoryList";
 import LoadingState from "./components/LoadingState";
 import Results from "./components/Results";
 import UploadPanel from "./components/UploadPanel";
 
 type State =
   | { status: "idle"; error: string | null }
-  | { status: "loading"; fileName: string }
+  | { status: "loading"; fileName: string; reopening: boolean }
   | { status: "done"; result: AnalyzeResponse };
 
 export default function Home() {
   const [state, setState] = useState<State>({ status: "idle", error: null });
   const controller = useRef<AbortController | null>(null);
 
-  async function run(fileName: string, getFile: (signal: AbortSignal) => Promise<File>) {
+  async function run(fileName: string, getResult: (signal: AbortSignal) => Promise<AnalyzeResponse>, reopening = false) {
     const abort = new AbortController();
     controller.current = abort;
-    setState({ status: "loading", fileName });
+    setState({ status: "loading", fileName, reopening });
     try {
-      const file = await getFile(abort.signal);
-      const result = await analyze(file, abort.signal);
+      const result = await getResult(abort.signal);
       setState({ status: "done", result });
     } catch (e) {
       if (abort.signal.aborted) return; // cancelled; the cancel handler already reset the page
@@ -49,14 +49,22 @@ export default function Home() {
       ) : (
         <div className="mx-auto w-full max-w-xl rounded-xl border border-border bg-surface p-6 sm:p-8">
           {state.status === "loading" ? (
-            <LoadingState fileName={state.fileName} onCancel={cancel} />
+            <LoadingState fileName={state.fileName} reopening={state.reopening} onCancel={cancel} />
           ) : (
             <UploadPanel
               error={state.error}
-              onAnalyze={(file) => run(file.name, async () => file)}
-              onSample={(name) => run(name, (signal) => fetchSample(name, signal))}
+              onAnalyze={(file) => run(file.name, (signal) => analyze(file, signal))}
+              onSample={(name) =>
+                run(name, async (signal) => analyze(await fetchSample(name, signal), signal))
+              }
             />
           )}
+        </div>
+      )}
+
+      {state.status === "idle" && (
+        <div className="mx-auto w-full max-w-3xl">
+          <HistoryList onOpen={(item) => run(item.source_file, (signal) => getAnalysis(item.id, signal), true)} />
         </div>
       )}
     </main>

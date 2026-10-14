@@ -10,13 +10,30 @@ const STEPS = [
   "Writing the summary",
 ];
 
-export default function LoadingState({ fileName, onCancel }: { fileName: string; onCancel: () => void }) {
+export default function LoadingState({
+  fileName,
+  reopening = false,
+  onCancel,
+}: {
+  fileName: string;
+  reopening?: boolean;
+  onCancel: () => void;
+}) {
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
     const started = Date.now();
     const timer = setInterval(() => setSeconds(Math.floor((Date.now() - started) / 1000)), 500);
     return () => clearInterval(timer);
   }, []);
+
+  if (reopening) {
+    return (
+      <div role="status" aria-live="polite" className="flex flex-col items-center gap-4 py-10 text-center">
+        <Spinner className="size-10 text-series-1" />
+        <p className="text-lg font-medium">Opening saved analysis of {fileName}…</p>
+      </div>
+    );
+  }
 
   return (
     <div role="status" aria-live="polite" className="flex flex-col items-center gap-5 py-10 text-center">

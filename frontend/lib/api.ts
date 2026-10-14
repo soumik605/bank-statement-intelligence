@@ -1,4 +1,4 @@
-import type { AnalyzeResponse } from "./types";
+import type { AnalyzeResponse, HistoryPage } from "./types";
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -42,4 +42,19 @@ export async function fetchSample(name: string, signal?: AbortSignal): Promise<F
   const response = await request(`/samples/${encodeURIComponent(name)}`, { signal });
   const blob = await response.blob();
   return new File([blob], name, { type: blob.type });
+}
+
+export async function listHistory(offset = 0, limit = 20): Promise<HistoryPage> {
+  const response = await request(`/history?limit=${limit}&offset=${offset}`);
+  return response.json();
+}
+
+// A saved analysis exactly as it was first returned; nothing is re-run.
+export async function getAnalysis(id: number, signal?: AbortSignal): Promise<AnalyzeResponse> {
+  const response = await request(`/history/${id}`, { signal });
+  return response.json();
+}
+
+export async function deleteAnalysis(id: number): Promise<void> {
+  await request(`/history/${id}`, { method: "DELETE" });
 }

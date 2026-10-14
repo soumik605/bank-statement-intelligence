@@ -1,6 +1,6 @@
 "use client";
 
-import { formatDate, inr, signedInr } from "@/lib/format";
+import { formatDate, formatDateTime, inr, signedInr } from "@/lib/format";
 import type { AnalyzeResponse, Analytics, StatementInfo, Transaction } from "@/lib/types";
 import { CheckIcon, WarningIcon } from "./icons";
 import SpendingChart from "./SpendingChart";
@@ -188,9 +188,23 @@ export default function Results({ result, onReset }: { result: AnalyzeResponse; 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-ink-2">
-          Results for <span className="font-medium text-ink">{result.source_file}</span>
-        </p>
+        <div>
+          <p className="text-sm text-ink-2">
+            Results for <span className="font-medium text-ink">{result.source_file}</span>
+          </p>
+          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted">
+            {result.analysis_id !== null && result.analyzed_at ? (
+              <>
+                <CheckIcon className="size-3.5 text-good-text" /> Saved to history · analyzed{" "}
+                {formatDateTime(result.analyzed_at)}
+              </>
+            ) : (
+              <>
+                <WarningIcon className="size-3.5" /> Couldn&apos;t be saved to history
+              </>
+            )}
+          </p>
+        </div>
         <button
           type="button"
           onClick={onReset}

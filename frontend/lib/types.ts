@@ -76,3 +76,23 @@ export interface HistoryPage {
   items: HistoryItem[];
   total: number;
 }
+
+export interface FailureItem {
+  id: number;
+  failed_at: string;
+  source_file: string;
+  file_sha256: string | null;
+  file_size: number;
+  file_kept: boolean;
+  http_status: number;
+  error_code: string;
+  message: string;
+  exception_type: string | null;
+  traceback: string | null;
+  password_supplied: boolean; // a protected PDF: the kept copy needs its password, which isn't stored
+}
+
+export interface FailurePage {
+  items: FailureItem[];
+  total: number;
+}

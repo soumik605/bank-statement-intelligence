@@ -21,10 +21,12 @@ export default function UploadPanel({
   onAnalyze,
   onSample,
   error,
+  failureId,
 }: {
   onAnalyze: (file: File) => void;
   onSample: (name: string) => void;
   error: string | null;
+  failureId: number | null; // the failed upload was kept for review under this id
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [pickError, setPickError] = useState<string | null>(null);
@@ -85,9 +87,14 @@ export default function UploadPanel({
       </label>
 
       {shownError && (
-        <p role="alert" className="rounded-lg border border-critical/40 bg-critical/5 px-4 py-3 text-sm">
-          {shownError}
-        </p>
+        <div role="alert" className="rounded-lg border border-critical/40 bg-critical/5 px-4 py-3 text-sm">
+          <p>{shownError}</p>
+          {!pickError && failureId !== null && (
+            <p className="mt-1 text-xs text-ink-2">
+              The file and error were kept (failure #{failureId}) so the parser can be improved; see Failed uploads below.
+            </p>
+          )}
+        </div>
       )}
 
       <button

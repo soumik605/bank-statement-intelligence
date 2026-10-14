@@ -1,10 +1,15 @@
-import type { AnalyzeResponse, HistoryPage } from "./types";
+import type { AnalyzeResponse, FailurePage, HistoryPage } from "./types";
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
 export class ApiError extends Error {
   // The backend's machine-readable reason, e.g. "password_required"; null for network errors.
-  constructor(message: string, public code: string | null = null) {
+  // failureId: the failed upload was kept for review under this id.
+  constructor(
+    message: string,
+    public code: string | null = null,
+    public failureId: number | null = null,
+  ) {
     super(message);
   }
 }
@@ -24,14 +29,16 @@ async function request(path: string, init?: RequestInit): Promise<Response> {
   if (!response.ok) {
     let message = `The server returned an error (HTTP ${response.status}).`;
     let code: string | null = null;
+    let failureId: number | null = null;
     try {
       const body = await response.json();
       if (typeof body?.detail?.message === "string") message = body.detail.message;
       if (typeof body?.detail?.error === "string") code = body.detail.error;
+      if (typeof body?.detail?.failure_id === "number") failureId = body.detail.failure_id;
     } catch {
       // not JSON; keep the generic message
     }
-    throw new ApiError(message, code);
+    throw new ApiError(message, code, failureId);
   }
   return response;
 }
@@ -66,4 +73,23 @@ export async function getAnalysis(id: number, signal?: AbortSignal): Promise<Ana
 
 export async function deleteAnalysis(id: number): Promise<void> {
   await request(`/history/${id}`, { method: "DELETE" });
+}
+
+// The statement exactly as it was uploaded, for previewing.
+export const originalFileUrl = (analysisId: number) => `${API_URL}/history/${analysisId}/file`;
+
+export async function fetchOriginalFile(analysisId: number, signal?: AbortSignal): Promise<Blob> {
+  const response = await request(`/history/${analysisId}/file`, { signal });
+  return response.blob();
+}
+
+export async function listFailures(offset = 0, limit = 20): Promise<FailurePage> {
+  const response = await request(`/failures?limit=${limit}&offset=${offset}`);
+  return response.json();
+}
+
+export const failureFileUrl = (failureId: number) => `${API_URL}/failures/${failureId}/file`;
+
+export async function deleteFailure(id: number): Promise<void> {
+  await request(`/failures/${id}`, { method: "DELETE" });
 }

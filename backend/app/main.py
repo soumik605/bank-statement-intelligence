@@ -7,6 +7,7 @@ then open http://localhost:8000/docs to try POST /analyze with a file.
 import logging
 import os
 import tempfile
+import traceback
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, Response, UploadFile
@@ -17,7 +18,7 @@ from app import db
 from app.extract import ExtractionError, IncorrectPasswordError, PasswordRequiredError
 from app.normalize import NormalizationError
 from app.pipeline import analyze_file
-from app.schema import AnalyzeResponse, HistoryPage
+from app.schema import AnalyzeResponse, FailureItem, FailurePage, HistoryPage
 
 log = logging.getLogger(__name__)
 
@@ -41,8 +42,20 @@ app.add_middleware(
 )
 
 
-def _error(status: int, error: str, message: str) -> HTTPException:
-    return HTTPException(status_code=status, detail={"error": error, "message": message})
+def _error(status: int, error: str, message: str, failure_id: int | None = None) -> HTTPException:
+    detail = {"error": error, "message": message}
+    if failure_id is not None:
+        detail["failure_id"] = failure_id  # the upload was kept for review under this id
+    return HTTPException(status_code=status, detail=detail)
+
+
+MEDIA_TYPES = {".pdf": "application/pdf", ".csv": "text/csv; charset=utf-8"}
+
+
+def _serve_upload(path: Path, name: str) -> FileResponse:
+    # inline: show in the browser (a PDF opens in its viewer) rather than download.
+    media_type = MEDIA_TYPES.get(Path(name).suffix.lower(), "application/octet-stream")
+    return FileResponse(path, media_type=media_type, filename=name, content_disposition_type="inline")
 
 
 @app.get("/health")
@@ -86,14 +99,32 @@ def analyze(
     # so FastAPI runs it in a worker thread instead of stalling the event loop.
     name = file.filename or "upload"
     suffix = Path(name).suffix.lower()
-    if suffix not in SUPPORTED_SUFFIXES:
-        raise _error(415, "unsupported_file_type", f"{name!r} is not a CSV or PDF file.")
-
     content = file.file.read(MAX_UPLOAD_BYTES + 1)
+
+    def fail(status: int, code: str, message: str, exc: BaseException | None = None, keep_file: bool = True):
+        """Record the failed upload (with its file, for reproducing it later), then raise."""
+        failure_id = None
+        try:
+            failure_id = db.save_failure(
+                source_file=name,
+                content=content if keep_file else None,
+                http_status=status,
+                error_code=code,
+                message=message,
+                exception=exc,
+                traceback="".join(traceback.format_exception(exc)) if exc else None,
+                password_supplied=bool(password),
+            )
+        except Exception:
+            log.exception("couldn't record failed upload of %s", name)
+        return _error(status, code, message, failure_id)
+
+    if suffix not in SUPPORTED_SUFFIXES:
+        raise fail(415, "unsupported_file_type", f"{name!r} is not a CSV or PDF file.")
     if not content:
-        raise _error(400, "empty_file", f"{name!r} is empty.")
+        raise fail(400, "empty_file", f"{name!r} is empty.", keep_file=False)
     if len(content) > MAX_UPLOAD_BYTES:
-        raise _error(413, "file_too_large", f"{name!r} is larger than {MAX_UPLOAD_BYTES // (1024 * 1024)} MB.")
+        raise fail(413, "file_too_large", f"{name!r} is larger than {MAX_UPLOAD_BYTES // (1024 * 1024)} MB.", keep_file=False)
 
     # The parsers work on paths (pdfplumber needs a real file), so park the upload on disk.
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
@@ -101,18 +132,20 @@ def analyze(
         tmp_path = Path(tmp.name)
     try:
         result = analyze_file(tmp_path, source_file=name, password=password or None)
+    # Asking for a password is the normal flow for a locked PDF, not a failure: not recorded.
     except PasswordRequiredError:
         raise _error(422, "password_required", f"{name!r} is password protected. Enter its password to continue.") from None
     except IncorrectPasswordError:
         raise _error(422, "incorrect_password", f"That password didn't open {name!r}. Check it and try again.") from None
     except (ExtractionError, NormalizationError) as e:
-        raise _error(422, "could_not_parse", f"Couldn't read {name!r} as a bank statement: {e}") from None
+        raise fail(422, "could_not_parse", f"Couldn't read {name!r} as a bank statement: {e}", e) from None
     except Exception as e:
         # pdfplumber/pandas raise their own types for corrupt files.
         if _is_parse_failure(e):
-            raise _error(422, "could_not_parse", f"Couldn't open {name!r}; it may be damaged or not really a {suffix[1:].upper()}.") from None
+            message = f"Couldn't open {name!r}; it may be damaged or not really a {suffix[1:].upper()}."
+            raise fail(422, "could_not_parse", message, e) from None
         log.exception("analyze failed for %s", name)
-        raise _error(500, "internal_error", "Something went wrong while analyzing the file.") from None
+        raise fail(500, "internal_error", "Something went wrong while analyzing the file.", e) from None
     finally:
         tmp_path.unlink(missing_ok=True)
 
@@ -139,10 +172,48 @@ def history_item(analysis_id: int) -> AnalyzeResponse:
     return result
 
 
+@app.get("/history/{analysis_id}/file", response_class=FileResponse, responses={404: {"description": "No such analysis, or its file wasn't kept"}})
+def history_file(analysis_id: int) -> FileResponse:
+    """The uploaded statement, exactly as uploaded (a protected PDF is still protected)."""
+    found = db.get_analysis_file(analysis_id)
+    if found is None:
+        raise _error(404, "file_not_found", "The original file isn't available for this analysis.")
+    return _serve_upload(*found)
+
+
 @app.delete("/history/{analysis_id}", status_code=204, responses={404: {"description": "No such analysis"}})
 def delete_history_item(analysis_id: int) -> Response:
     if not db.delete_analysis(analysis_id):
         raise _error(404, "analysis_not_found", f"No saved analysis with id {analysis_id}.")
+    return Response(status_code=204)
+
+
+@app.get("/failures", response_model=FailurePage)
+def failures(limit: int = Query(20, ge=1, le=100), offset: int = Query(0, ge=0)) -> FailurePage:
+    """Failed uploads, newest first, with errors and tracebacks, for improving the parser."""
+    return db.list_failures(limit, offset)
+
+
+@app.get("/failures/{failure_id}", response_model=FailureItem, responses={404: {"description": "No such failure"}})
+def failure(failure_id: int) -> FailureItem:
+    found = db.get_failure(failure_id)
+    if found is None:
+        raise _error(404, "failure_not_found", f"No recorded failure with id {failure_id}.")
+    return found
+
+
+@app.get("/failures/{failure_id}/file", response_class=FileResponse, responses={404: {"description": "No such failure, or no file kept"}})
+def failure_file(failure_id: int) -> FileResponse:
+    found = db.get_failure_file(failure_id)
+    if found is None:
+        raise _error(404, "file_not_found", "No file was kept for this failure.")
+    return _serve_upload(*found)
+
+
+@app.delete("/failures/{failure_id}", status_code=204, responses={404: {"description": "No such failure"}})
+def delete_failure(failure_id: int) -> Response:
+    if not db.delete_failure(failure_id):
+        raise _error(404, "failure_not_found", f"No recorded failure with id {failure_id}.")
     return Response(status_code=204)
 
 

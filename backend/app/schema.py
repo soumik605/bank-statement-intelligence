@@ -173,3 +173,25 @@ class HistoryItem(BaseModel):
 class HistoryPage(BaseModel):
     items: list[HistoryItem] = Field(description="Newest first")
     total: int = Field(description="All saved analyses, not just this page")
+
+
+class FailureItem(BaseModel):
+    """A failed upload, kept so the parser can be improved against the real file."""
+
+    id: int
+    failed_at: dt.datetime
+    source_file: str
+    file_sha256: str | None
+    file_size: int
+    file_kept: bool = Field(description="Whether the uploaded file is stored and can be downloaded")
+    http_status: int
+    error_code: str
+    message: str = Field(description="What the user was shown")
+    exception_type: str | None
+    traceback: str | None
+    password_supplied: bool = Field(description="A protected PDF; the stored copy needs its password, which isn't kept")
+
+
+class FailurePage(BaseModel):
+    items: list[FailureItem] = Field(description="Newest first")
+    total: int

@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { formatDate, formatDateTime, inr, signedInr } from "@/lib/format";
 import type { AnalyzeResponse, Analytics, StatementInfo, Transaction } from "@/lib/types";
 import { CheckIcon, WarningIcon } from "./icons";
+import DocumentPreview from "./DocumentPreview";
 import SpendingChart from "./SpendingChart";
 
 function Card({ title, children, className = "" }: { title?: string; children: React.ReactNode; className?: string }) {
@@ -185,6 +187,7 @@ function TransactionsTable({ transactions, skipped }: { transactions: Transactio
 }
 
 export default function Results({ result, onReset }: { result: AnalyzeResponse; onReset: () => void }) {
+  const [previewing, setPreviewing] = useState(false);
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -205,14 +208,28 @@ export default function Results({ result, onReset }: { result: AnalyzeResponse; 
             )}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onReset}
-          className="h-9 rounded-lg border border-border bg-surface px-4 text-sm font-medium transition-colors hover:bg-wash"
-        >
-          Analyze another statement
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {result.analysis_id !== null && (
+            <button
+              type="button"
+              onClick={() => setPreviewing(true)}
+              className="h-9 rounded-lg border border-border bg-surface px-4 text-sm font-medium transition-colors hover:bg-wash"
+            >
+              View original document
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onReset}
+            className="h-9 rounded-lg border border-border bg-surface px-4 text-sm font-medium transition-colors hover:bg-wash"
+          >
+            Analyze another statement
+          </button>
+        </div>
       </div>
+      {previewing && result.analysis_id !== null && (
+        <DocumentPreview analysisId={result.analysis_id} fileName={result.source_file} onClose={() => setPreviewing(false)} />
+      )}
 
       <AccountCard account={result.account} count={result.summary.transaction_count} />
       <div className="grid gap-4 sm:grid-cols-3">

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { analyze, ApiError, fetchSample, getAnalysis } from "@/lib/api";
 import type { AnalyzeResponse } from "@/lib/types";
+import FailuresList from "./components/FailuresList";
 import HistoryList from "./components/HistoryList";
 import LoadingState from "./components/LoadingState";
 import PasswordPrompt from "./components/PasswordPrompt";
@@ -10,7 +11,7 @@ import Results from "./components/Results";
 import UploadPanel from "./components/UploadPanel";
 
 type State =
-  | { status: "idle"; error: string | null }
+  | { status: "idle"; error: string | null; failureId?: number | null }
   | { status: "loading"; fileName: string; reopening: boolean }
   // A protected PDF: keep the file so the user only has to type the password.
   | { status: "password"; file: File; incorrect: boolean; attempt: number }
@@ -34,7 +35,11 @@ export default function Home() {
     } catch (e) {
       if (abort.signal.aborted) return; // cancelled; the cancel handler already reset the page
       if (onError?.(e)) return;
-      setState({ status: "idle", error: e instanceof Error ? e.message : "Something went wrong." });
+      setState({
+        status: "idle",
+        error: e instanceof Error ? e.message : "Something went wrong.",
+        failureId: e instanceof ApiError ? e.failureId : null,
+      });
     }
   }
 
@@ -101,6 +106,7 @@ export default function Home() {
           {state.status === "idle" && (
             <UploadPanel
               error={state.error}
+              failureId={state.failureId ?? null}
               onAnalyze={(file) => analyzeFile(file.name, async () => file)}
               onSample={(name) => analyzeFile(name, (signal) => fetchSample(name, signal))}
             />
@@ -109,10 +115,11 @@ export default function Home() {
       )}
 
       {state.status === "idle" && (
-        <div className="mx-auto w-full max-w-3xl">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
           <HistoryList
             onOpen={(item) => run(item.source_file, (signal) => getAnalysis(item.id, signal), { reopening: true })}
           />
+          <FailuresList />
         </div>
       )}
     </main>

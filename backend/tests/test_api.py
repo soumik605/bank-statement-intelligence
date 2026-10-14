@@ -90,3 +90,15 @@ def test_too_large(monkeypatch):
 def test_docs_page():
     assert client.get("/docs").status_code == 200
     assert "/analyze" in client.get("/openapi.json").json()["paths"]
+
+
+def test_samples_are_served():
+    names = client.get("/samples").json()
+    assert "meridian_q1-2026.pdf" in names and not any(n.endswith(".json") for n in names)
+    response = client.get("/samples/meridian_q1-2026.pdf")
+    assert response.status_code == 200 and response.content.startswith(b"%PDF")
+
+
+@pytest.mark.parametrize("name", ["meridian_q1-2026.truth.json", "..%2F..%2F.env", "nope.pdf"])
+def test_only_listed_samples_are_served(name):
+    assert client.get(f"/samples/{name}").status_code == 404

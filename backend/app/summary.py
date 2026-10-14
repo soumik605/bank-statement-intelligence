@@ -31,6 +31,8 @@ SYSTEM_PROMPT = (
     "Do not calculate or invent numbers. Use only the values provided.\n"
     "Copy amounts and percentages exactly as written in the input, e.g. ₹1,05,000. "
     "Never round, total, subtract, or work out new percentages.\n"
+    "total_money_out is everything that left the account, including transfers; only "
+    "total_spending is spending. Don't call total_money_out spending.\n"
     "Say where the money went (the top spending categories) and mention any unusual "
     "transactions with their reason."
 )

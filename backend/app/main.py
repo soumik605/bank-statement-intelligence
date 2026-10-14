@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.extract import ExtractionError
@@ -20,6 +21,7 @@ from app.schema import AnalyzeResponse
 log = logging.getLogger(__name__)
 
 SUPPORTED_SUFFIXES = {".csv", ".pdf"}
+SAMPLES_DIR = Path(__file__).resolve().parents[2] / "data" / "samples"
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 app = FastAPI(
@@ -45,6 +47,20 @@ def _error(status: int, error: str, message: str) -> HTTPException:
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+@app.get("/samples")
+def list_samples() -> list[str]:
+    """Synthetic statements anyone can try; see scripts/generate_samples.py."""
+    return sorted(p.name for p in SAMPLES_DIR.glob("*") if p.suffix in SUPPORTED_SUFFIXES)
+
+
+@app.get("/samples/{name}", response_class=FileResponse, responses={404: {"description": "No such sample"}})
+def get_sample(name: str) -> FileResponse:
+    # Only names from the listing, so a path like "../../.env" can never be served.
+    if name not in list_samples():
+        raise _error(404, "sample_not_found", f"No sample called {name!r}.")
+    return FileResponse(SAMPLES_DIR / name, filename=name)
 
 
 @app.post(

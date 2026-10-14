@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { analyze, ApiError, fetchSample, getAnalysis } from "@/lib/api";
-import type { AnalyzeResponse } from "@/lib/types";
+import { analyze, ApiError, fetchSample, getAnalysis, retryFailure } from "@/lib/api";
+import type { AnalyzeResponse, FailureItem } from "@/lib/types";
 import FailuresList from "./components/FailuresList";
 import HistoryList from "./components/HistoryList";
 import LoadingState from "./components/LoadingState";
@@ -13,8 +13,15 @@ import UploadPanel from "./components/UploadPanel";
 type State =
   | { status: "idle"; error: string | null; failureId?: number | null }
   | { status: "loading"; fileName: string; reopening: boolean }
-  // A protected PDF: keep the file so the user only has to type the password.
-  | { status: "password"; file: File; incorrect: boolean; attempt: number }
+  // A protected PDF: `submit` re-runs whatever needed the password (an upload or a
+  // retry), so the user only has to type it.
+  | {
+      status: "password";
+      fileName: string;
+      incorrect: boolean;
+      attempt: number;
+      submit: (password: string, attempt: number) => void;
+    }
   | { status: "done"; result: AnalyzeResponse };
 
 export default function Home() {
@@ -45,6 +52,14 @@ export default function Home() {
 
   // The server checks for a password before doing any work, so a locked PDF
   // comes back within a second and we ask for the password.
+  function askForPassword(e: unknown, fileName: string, attempt: number, submit: (password: string, attempt: number) => void) {
+    const locked = e instanceof ApiError && (e.code === "password_required" || e.code === "incorrect_password");
+    if (locked) {
+      setState({ status: "password", fileName, incorrect: e.code === "incorrect_password", attempt: attempt + 1, submit });
+    }
+    return locked;
+  }
+
   function analyzeFile(
     fileName: string,
     getFile: (signal: AbortSignal) => Promise<File>,
@@ -60,13 +75,25 @@ export default function Home() {
       },
       {
         onError: (e) => {
-          const locked = e instanceof ApiError && (e.code === "password_required" || e.code === "incorrect_password");
-          if (!locked || !file) return false;
-          setState({ status: "password", file, incorrect: e.code === "incorrect_password", attempt: attempt + 1 });
-          return true;
+          const kept = file;
+          return !!kept && askForPassword(e, kept.name, attempt, (pw, n) => analyzeFile(kept.name, async () => kept, pw, n));
         },
       },
     );
+  }
+
+  function retry(item: FailureItem, password?: string, attempt = 0) {
+    run(item.source_file, (signal) => retryFailure(item.id, signal, password), {
+      onError: (e) => {
+        if (askForPassword(e, item.source_file, attempt, (pw, n) => retry(item, pw, n))) return true;
+        setState({
+          status: "idle",
+          error: `Retry failed: ${e instanceof Error ? e.message : "something went wrong."}`,
+          failureId: e instanceof ApiError ? e.failureId : null,
+        });
+        return true;
+      },
+    });
   }
 
   function cancel() {
@@ -94,12 +121,9 @@ export default function Home() {
             <PasswordPrompt
               // A fresh prompt (empty field) after each wrong attempt.
               key={state.attempt}
-              fileName={state.file.name}
+              fileName={state.fileName}
               incorrect={state.incorrect}
-              onSubmit={(password) => {
-                const { file, attempt } = state;
-                analyzeFile(file.name, async () => file, password, attempt);
-              }}
+              onSubmit={(password) => state.submit(password, state.attempt)}
               onCancel={() => setState({ status: "idle", error: null })}
             />
           )}
@@ -119,7 +143,12 @@ export default function Home() {
           <HistoryList
             onOpen={(item) => run(item.source_file, (signal) => getAnalysis(item.id, signal), { reopening: true })}
           />
-          <FailuresList />
+          <FailuresList
+            onRetry={(item) => retry(item)}
+            onOpenResult={(analysisId, fileName) =>
+              run(fileName, (signal) => getAnalysis(analysisId, signal), { reopening: true })
+            }
+          />
         </div>
       )}
     </main>

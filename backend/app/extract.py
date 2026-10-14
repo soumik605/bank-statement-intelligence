@@ -30,17 +30,9 @@ import pdfplumber
 from pdfminer.pdfdocument import PDFPasswordIncorrect
 from pdfplumber.utils.exceptions import PdfminerException
 
+from app.headers import is_header_hint
+
 RawRow = dict[str, str]
-
-# Words that show up in statement column headers. A header row has at least
-# three cells containing one of these and no digits; that keeps out preamble
-# lines like "Opening Balance,6,20,400.00" and data rows.
-_HEADER_WORD = re.compile(
-    r"\b(date|dt|narration|particulars|description|details|remarks|debit|credit|"
-    r"withdrawals?|deposits?|amount|balance|ref|chq|cheque|dr|cr)\b",
-    re.IGNORECASE,
-)
-
 
 class ExtractionError(ValueError):
     pass
@@ -219,11 +211,11 @@ def _clean(cell: object) -> str:
 
 
 def _is_header(cells: list[str]) -> bool:
+    """At least three cells that read like column names ("Date", "WithdrawalAmt."),
+    and no digits, which keeps out preamble lines like "Opening Balance,6,20,400.00"
+    and data rows."""
     filled = [c for c in cells if c]
-    return (
-        sum(bool(_HEADER_WORD.search(c)) for c in filled) >= 3
-        and not any(ch.isdigit() for c in filled for ch in c)
-    )
+    return sum(is_header_hint(c) for c in filled) >= 3 and not any(ch.isdigit() for c in filled for ch in c)
 
 
 def _column_names(cells: list[str]) -> list[str]:

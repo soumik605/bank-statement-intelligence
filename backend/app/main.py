@@ -98,62 +98,82 @@ def analyze(
     # A plain def, not async: the pipeline blocks on file parsing and LLM calls,
     # so FastAPI runs it in a worker thread instead of stalling the event loop.
     name = file.filename or "upload"
-    suffix = Path(name).suffix.lower()
     content = file.file.read(MAX_UPLOAD_BYTES + 1)
-
-    def fail(status: int, code: str, message: str, exc: BaseException | None = None, keep_file: bool = True):
-        """Record the failed upload (with its file, for reproducing it later), then raise."""
+    try:
+        if not content:
+            raise AnalysisFailed(400, "empty_file", f"{name!r} is empty.", keep_file=False)
+        if len(content) > MAX_UPLOAD_BYTES:
+            limit = MAX_UPLOAD_BYTES // (1024 * 1024)
+            raise AnalysisFailed(413, "file_too_large", f"{name!r} is larger than {limit} MB.", keep_file=False)
+        result = _run_pipeline(name, content, password)
+    except AnalysisFailed as f:
         failure_id = None
         try:
             failure_id = db.save_failure(
-                source_file=name,
-                content=content if keep_file else None,
-                http_status=status,
-                error_code=code,
-                message=message,
-                exception=exc,
-                traceback="".join(traceback.format_exception(exc)) if exc else None,
-                password_supplied=bool(password),
+                source_file=name, content=content if f.keep_file else None, **f.record(password)
             )
         except Exception:
             log.exception("couldn't record failed upload of %s", name)
-        return _error(status, code, message, failure_id)
+        raise _error(f.status, f.code, f.message, failure_id) from None
+    return _save(result, content)
 
+
+class AnalysisFailed(Exception):
+    """A failure worth keeping for review (unlike a password prompt, which is normal flow)."""
+
+    def __init__(self, status: int, code: str, message: str, exc: BaseException | None = None, keep_file: bool = True):
+        super().__init__(message)
+        self.status, self.code, self.message, self.exc, self.keep_file = status, code, message, exc, keep_file
+
+    def record(self, password: str | None) -> dict:
+        return {
+            "http_status": self.status,
+            "error_code": self.code,
+            "message": self.message,
+            "exception": self.exc,
+            "traceback": "".join(traceback.format_exception(self.exc)) if self.exc else None,
+            "password_supplied": bool(password),
+        }
+
+
+def _run_pipeline(name: str, content: bytes, password: str | None) -> AnalyzeResponse:
+    """Analyze uploaded bytes. Raises AnalysisFailed, or an HTTPException asking for a password."""
+    suffix = Path(name).suffix.lower()
     if suffix not in SUPPORTED_SUFFIXES:
-        raise fail(415, "unsupported_file_type", f"{name!r} is not a CSV or PDF file.")
-    if not content:
-        raise fail(400, "empty_file", f"{name!r} is empty.", keep_file=False)
-    if len(content) > MAX_UPLOAD_BYTES:
-        raise fail(413, "file_too_large", f"{name!r} is larger than {MAX_UPLOAD_BYTES // (1024 * 1024)} MB.", keep_file=False)
+        raise AnalysisFailed(415, "unsupported_file_type", f"{name!r} is not a CSV or PDF file.")
 
-    # The parsers work on paths (pdfplumber needs a real file), so park the upload on disk.
+    # The parsers work on paths (pdfplumber needs a real file), so park the bytes on disk.
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
         tmp.write(content)
         tmp_path = Path(tmp.name)
     try:
-        result = analyze_file(tmp_path, source_file=name, password=password or None)
+        return analyze_file(tmp_path, source_file=name, password=password or None)
     # Asking for a password is the normal flow for a locked PDF, not a failure: not recorded.
     except PasswordRequiredError:
         raise _error(422, "password_required", f"{name!r} is password protected. Enter its password to continue.") from None
     except IncorrectPasswordError:
         raise _error(422, "incorrect_password", f"That password didn't open {name!r}. Check it and try again.") from None
     except (ExtractionError, NormalizationError) as e:
-        raise fail(422, "could_not_parse", f"Couldn't read {name!r} as a bank statement: {e}", e) from None
+        # The parsers name the file they read, which is our temporary copy; the message already names the upload.
+        reason = str(e).replace(f"{tmp_path.name}: ", "").replace(tmp_path.name, name)
+        raise AnalysisFailed(422, "could_not_parse", f"Couldn't read {name!r} as a bank statement: {reason}", e) from None
     except Exception as e:
         # pdfplumber/pandas raise their own types for corrupt files.
         if _is_parse_failure(e):
             message = f"Couldn't open {name!r}; it may be damaged or not really a {suffix[1:].upper()}."
-            raise fail(422, "could_not_parse", message, e) from None
+            raise AnalysisFailed(422, "could_not_parse", message, e) from None
         log.exception("analyze failed for %s", name)
-        raise fail(500, "internal_error", "Something went wrong while analyzing the file.", e) from None
+        raise AnalysisFailed(500, "internal_error", "Something went wrong while analyzing the file.", e) from None
     finally:
         tmp_path.unlink(missing_ok=True)
 
+
+def _save(result: AnalyzeResponse, content: bytes) -> AnalyzeResponse:
     try:
         return db.save_analysis(result, content)
     except Exception:
         # The analysis worked; don't throw it away because the history couldn't be written.
-        log.exception("couldn't save analysis of %s to history", name)
+        log.exception("couldn't save analysis of %s to history", result.source_file)
         return result
 
 
@@ -208,6 +228,41 @@ def failure_file(failure_id: int) -> FileResponse:
     if found is None:
         raise _error(404, "file_not_found", "No file was kept for this failure.")
     return _serve_upload(*found)
+
+
+@app.post(
+    "/failures/{failure_id}/retry",
+    response_model=AnalyzeResponse,
+    responses={
+        404: {"description": "No such failure, or no file was kept to retry"},
+        422: {"description": 'Failed again (`failure_id` is this same record), or `error` is "password_required" / "incorrect_password"'},
+    },
+)
+def retry_failure(
+    failure_id: int,
+    password: str | None = Form(None, description="Only for password-protected PDFs. Used to open the file; never stored."),
+) -> AnalyzeResponse:
+    """Run the analysis again on the kept file, e.g. after the parser has been improved.
+    Success is saved to history and marks the failure resolved; another failure updates
+    this record (latest error, retry count) instead of adding a new one."""
+    kept = db.get_failure_content(failure_id)
+    if kept is None:
+        if db.get_failure(failure_id) is None:
+            raise _error(404, "failure_not_found", f"No recorded failure with id {failure_id}.")
+        raise _error(404, "file_not_found", "No file was kept for this failure, so it can't be retried.")
+    content, name = kept
+    try:
+        result = _run_pipeline(name, content, password)
+    except AnalysisFailed as f:
+        try:
+            db.record_retry_failure(failure_id, **f.record(password))
+        except Exception:
+            log.exception("couldn't record failed retry of failure %s", failure_id)
+        raise _error(f.status, f.code, f.message, failure_id) from None
+    saved = _save(result, content)
+    if saved.analysis_id is not None:
+        db.resolve_failure(failure_id, saved.analysis_id)
+    return saved
 
 
 @app.delete("/failures/{failure_id}", status_code=204, responses={404: {"description": "No such failure"}})

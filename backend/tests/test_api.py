@@ -81,7 +81,7 @@ def test_clear_errors(name, content, status, error):
 
 def test_parse_error_says_why():
     detail = _post("junk.csv", b"a,b\n1,2\n").json()["detail"]
-    assert "no header row found" in detail["message"]
+    assert detail["message"] == "Couldn't read 'junk.csv' as a bank statement: no header row found"  # no temp-file name
 
 
 def test_too_large(monkeypatch):

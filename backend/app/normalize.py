@@ -1,7 +1,8 @@
 """Stage 2: turn extracted text rows into schema objects you can do math on.
 
-- Column names are matched against known aliases ("Txn Date", "Value Date"
-  and "Date" all mean date), so each bank's layout maps onto one shape.
+- Column names are read by their words, however they're spaced or cased
+  ("Withdrawal Amt.", "WithdrawalAmt." and "Debit" all mean debit; "Txn Date",
+  "Value Date" and "Date" all mean date), so each bank's layout maps onto one shape.
 - Amounts like "₹1,23,456.00", "1,500.00 Dr" or "(250.00)" become numbers.
   Commas are stripped whatever the grouping, so Indian 1,23,456 and western
   123,456 both work.
@@ -22,6 +23,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from app.extract import RawRow, extract_header_text, extract_rows
+from app.headers import column_role
 from app.schema import StatementInfo, Transaction, TransactionType
 
 
@@ -49,47 +51,41 @@ def load_statement(path: str | Path, password: str | None = None) -> NormalizedS
 
 # --- Columns ------------------------------------------------------------------
 
-# Matched after _header_key(); within a field, earlier aliases win, so a
-# transaction date beats a value date when a statement has both.
-COLUMN_ALIASES: dict[str, list[str]] = {
-    "date": ["txn date", "transaction date", "tran date", "trans date", "txn dt", "tran dt",
-             "date", "posting date", "post date", "value date", "value dt"],
-    "description": ["narration", "particulars", "description", "transaction details", "details",
-                    "transaction remarks", "remarks"],
-    "debit": ["debit", "debits", "debit amount", "debit amt", "withdrawal", "withdrawals",
-              "withdrawal amount", "withdrawal amt", "dr amount", "dr"],
-    "credit": ["credit", "credits", "credit amount", "credit amt", "deposit", "deposits",
-               "deposit amount", "deposit amt", "cr amount", "cr"],
-    "amount": ["amount", "txn amount", "transaction amount", "amt"],
-    "marker": ["dr/cr", "cr/dr", "dr / cr", "cr / dr", "debit/credit", "type", "txn type", "transaction type"],
-    "balance": ["balance", "closing balance", "running balance", "available balance", "bal"],
-}
-
-
-def _header_key(name: str) -> str:
-    # "Withdrawal (Dr)" -> "withdrawal", "Amount (INR)" -> "amount", "Withdrawal Amt." -> "withdrawal amt"
-    name = re.sub(r"\(.*?\)", " ", name.lower())
-    name = re.sub(r"[^a-z/ ]+", " ", name)
-    return " ".join(name.split())
-
-
 def map_columns(columns: list[str]) -> dict[str, str]:
-    """Schema field -> the statement's column name, for every field found."""
-    keys = {col: _header_key(col) for col in columns}
-    mapping = {}
-    for fld, aliases in COLUMN_ALIASES.items():
-        for alias in aliases:
-            match = next((col for col in columns if keys[col] == alias), None)
-            if match is not None:
-                mapping[fld] = match
-                break
+    """Schema field -> the statement's column name, for every field found.
+
+    Headers are read by their words (see app.headers), so "Withdrawal Amt.",
+    "WithdrawalAmt.", "Debit" and "Dr Amount" all become the debit column. When
+    two columns claim a field, the stronger one wins (a transaction date over a
+    value date), then the leftmost.
+    """
+    best: dict[str, tuple[int, int, str]] = {}
+    for position, column in enumerate(columns):
+        role = column_role(column)
+        if role is None:
+            continue
+        fld, rank = role
+        if fld not in best or (rank, position) < best[fld][:2]:
+            best[fld] = (rank, position, column)
+    mapping = {fld: column for fld, (_, _, column) in best.items()}
+
     has_amounts = {"debit", "credit"} <= mapping.keys() or "amount" in mapping
     if "date" not in mapping or "description" not in mapping or not has_amounts:
+        read_as = ", ".join(f"{c!r} -> {(column_role(c) or ('unused',))[0]}" for c in columns)
         raise NormalizationError(
-            f"can't map columns {columns}: need a date, a description, and either "
-            f"separate debit/credit columns or an amount column (found {mapping})"
+            "can't map columns: need a date, a description, and either separate debit and credit "
+            f"columns or one amount column. Read the columns as: {read_as}"
         )
     return mapping
+
+
+def _usable_marker(rows: list[RawRow], column: str) -> bool:
+    """A weak marker column ("Type") is used only if its values really are Dr/Cr."""
+    values = [row[column] for row in rows if row.get(column)]
+    try:
+        return bool(values) and all(parse_marker(v) for v in values)
+    except ValueError:
+        return False
 
 
 # --- Values -------------------------------------------------------------------
@@ -214,6 +210,8 @@ def normalize(rows: list[RawRow], header_text: str = "") -> NormalizedStatement:
     if not rows:
         raise NormalizationError("no rows to normalize")
     cols = map_columns(list(rows[0]))
+    if "marker" in cols and column_role(cols["marker"]) == ("marker", 1) and not _usable_marker(rows, cols["marker"]):
+        del cols["marker"]  # e.g. a "Type" column holding UPI/NEFT, not Dr/Cr
     transactions: list[Transaction] = []
     skipped: list[SkippedRow] = []
     typed_by_sign: list[Decimal] = []

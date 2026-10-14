@@ -90,6 +90,10 @@ export interface FailureItem {
   exception_type: string | null;
   traceback: string | null;
   password_supplied: boolean; // a protected PDF: the kept copy needs its password, which isn't stored
+  retry_count: number;
+  last_retry_at: string | null;
+  resolved_at: string | null; // a retry succeeded
+  resolved_analysis_id: number | null; // what that retry produced; null if since deleted
 }
 
 export interface FailurePage {

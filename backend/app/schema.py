@@ -190,6 +190,12 @@ class FailureItem(BaseModel):
     exception_type: str | None
     traceback: str | None
     password_supplied: bool = Field(description="A protected PDF; the stored copy needs its password, which isn't kept")
+    retry_count: int = 0
+    last_retry_at: dt.datetime | None = None
+    resolved_at: dt.datetime | None = Field(default=None, description="When a retry succeeded")
+    resolved_analysis_id: int | None = Field(
+        default=None, description="The analysis the successful retry produced; null if not resolved or since deleted"
+    )
 
 
 class FailurePage(BaseModel):

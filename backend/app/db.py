@@ -78,7 +78,11 @@ CREATE TABLE IF NOT EXISTS failures (
     message           TEXT    NOT NULL,              -- what the user was shown
     exception_type    TEXT,
     traceback         TEXT,
-    password_supplied INTEGER NOT NULL DEFAULT 0     -- a protected PDF; reproducing needs its password
+    password_supplied INTEGER NOT NULL DEFAULT 0,    -- a protected PDF; reproducing needs its password
+    retry_count       INTEGER NOT NULL DEFAULT 0,
+    last_retry_at     TEXT,
+    resolved_at       TEXT,                          -- a retry succeeded
+    resolved_analysis_id INTEGER REFERENCES analyses (id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS failures_failed_at ON failures (failed_at);
 """
@@ -95,10 +99,32 @@ def connect() -> Iterator[sqlite3.Connection]:
         conn.execute("PRAGMA foreign_keys = ON")  # off by default in SQLite; needed for the cascade
         conn.execute("PRAGMA journal_mode = WAL")  # readers don't block the writer
         conn.executescript(SCHEMA)
+        _migrate(conn)
         with conn:
             yield conn
     finally:
         conn.close()
+
+
+# Columns added after the first release. CREATE TABLE IF NOT EXISTS leaves an
+# existing table alone, so add whatever an older database is missing.
+_ADDED_COLUMNS = {
+    "failures": [
+        ("retry_count", "INTEGER NOT NULL DEFAULT 0"),
+        ("last_retry_at", "TEXT"),
+        ("resolved_at", "TEXT"),
+        ("resolved_analysis_id", "INTEGER REFERENCES analyses (id) ON DELETE SET NULL"),
+    ],
+}
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    for table, columns in _ADDED_COLUMNS.items():
+        existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        for name, definition in columns:
+            if name not in existing:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
+    conn.commit()
 
 
 # --- Stored files ----------------------------------------------------------------
@@ -264,6 +290,48 @@ def get_failure_file(failure_id: int) -> tuple[Path, str] | None:
     failure = get_failure(failure_id)
     path = stored_file(failure.file_sha256) if failure else None
     return (path, failure.source_file) if path else None
+
+
+def get_failure_content(failure_id: int) -> tuple[bytes, str] | None:
+    """(kept file bytes, original name), or None if the failure or its file is gone."""
+    found = get_failure_file(failure_id)
+    return (found[0].read_bytes(), found[1]) if found else None
+
+
+def record_retry_failure(
+    failure_id: int,
+    *,
+    http_status: int,
+    error_code: str,
+    message: str,
+    exception: BaseException | None = None,
+    traceback: str | None = None,
+    password_supplied: bool = False,
+) -> None:
+    """A retry failed again: keep the latest error on the same record and count the attempt."""
+    with connect() as conn:
+        conn.execute(
+            """UPDATE failures SET retry_count = retry_count + 1, last_retry_at = ?, http_status = ?,
+                   error_code = ?, message = ?, exception_type = ?, traceback = ?,
+                   password_supplied = MAX(password_supplied, ?)
+               WHERE id = ?""",
+            (
+                _now().isoformat(), http_status, error_code, message,
+                type(exception).__qualname__ if exception else None, traceback, int(password_supplied), failure_id,
+            ),
+        )
+
+
+def resolve_failure(failure_id: int, analysis_id: int) -> None:
+    """A retry succeeded: link the failure to the analysis it produced."""
+    now = _now().isoformat()
+    with connect() as conn:
+        conn.execute(
+            """UPDATE failures SET retry_count = retry_count + 1, last_retry_at = ?, resolved_at = ?,
+                   resolved_analysis_id = ?
+               WHERE id = ?""",
+            (now, now, analysis_id, failure_id),
+        )
 
 
 def delete_failure(failure_id: int) -> bool:

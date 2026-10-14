@@ -93,3 +93,12 @@ export const failureFileUrl = (failureId: number) => `${API_URL}/failures/${fail
 export async function deleteFailure(id: number): Promise<void> {
   await request(`/failures/${id}`, { method: "DELETE" });
 }
+
+// Run the analysis again on a failed upload's kept file. Success is saved to
+// history and marks the failure resolved; another failure updates the same record.
+export async function retryFailure(failureId: number, signal?: AbortSignal, password?: string): Promise<AnalyzeResponse> {
+  const form = new FormData();
+  if (password) form.append("password", password);
+  const response = await request(`/failures/${failureId}/retry`, { method: "POST", body: form, signal });
+  return response.json();
+}

@@ -17,7 +17,7 @@ import json
 import random
 import sys
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from decimal import Decimal
 from pathlib import Path
 
@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 from reportlab import rl_config
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.pdfencrypt import StandardEncryption
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
@@ -55,6 +56,7 @@ class Truth(BaseModel):
     """The correct output of the parsing stages for one statement file."""
 
     source_file: str
+    password: str | None = Field(default=None, description="Needed to open the file, if it's protected")
     statement: StatementInfo
     opening_balance: float
     closing_balance: float
@@ -108,6 +110,7 @@ class Spec:
     writer: Callable[[Path, "Spec", list[Row], random.Random], None]
     extras: list[Event] = field(default_factory=list)
     prints_account_details: bool = True  # False: the file has only the table
+    password: str | None = None  # PDFs only: encrypt the file with this password
 
 
 def month_events(rng: random.Random, year: int, month: int, spec: Spec) -> list[Event]:
@@ -253,6 +256,8 @@ def _pdf(path: Path, spec: Spec, header_lines: list[str], table: list[list], col
     doc = SimpleDocTemplate(
         str(path), pagesize=A4, title=f"{spec.bank_name} statement", author=spec.bank_name,
         leftMargin=15 * mm, rightMargin=15 * mm, topMargin=15 * mm, bottomMargin=18 * mm,
+        # Deterministic under rl_config.invariant, unlike tools that pick random keys.
+        encrypt=StandardEncryption(spec.password, canPrint=1, strength=128) if spec.password else None,
     )
     doc.build(story, onFirstPage=footer, onLaterPages=footer)
 
@@ -318,7 +323,7 @@ HUGE = "One-off amount far above anything else in the statement"
 
 
 def specs() -> list[Spec]:
-    return [
+    base = [
         Spec(
             stem="northwind_jan2026", suffix="csv",
             bank_name="Northwind Bank", holder_name="Ananya Rao", account_number="XXXXXXXX4821",
@@ -445,6 +450,10 @@ def specs() -> list[Spec]:
             ],
         ),
     ]
+    # The Sahyadri layout again, password-protected the way many Indian banks send
+    # statements: first four letters of the holder's name + day and month of birth.
+    sahyadri = base[-1]
+    return [*base, replace(sahyadri, stem="sahyadri_feb-mar2026_locked", password="THOM0512")]
 
 
 # --- Main ---------------------------------------------------------------------
@@ -472,6 +481,7 @@ def generate(out_dir: Path) -> list[Path]:
 
         truth = Truth(
             source_file=source.name,
+            password=spec.password,
             statement=expected_statement(spec, rows),
             opening_balance=float(spec.opening),
             closing_balance=float(rows[-1].balance),

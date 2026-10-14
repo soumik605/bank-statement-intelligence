@@ -19,12 +19,16 @@ interpretation.
 import bisect
 import csv
 import re
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
 import pandas as pd
 import pdfplumber
+from pdfminer.pdfdocument import PDFPasswordIncorrect
+from pdfplumber.utils.exceptions import PdfminerException
 
 RawRow = dict[str, str]
 
@@ -42,16 +46,47 @@ class ExtractionError(ValueError):
     pass
 
 
-def extract_rows(path: str | Path) -> list[RawRow]:
+class PasswordRequiredError(ExtractionError):
+    """The PDF is encrypted and no password was given."""
+
+
+class IncorrectPasswordError(ExtractionError):
+    """The PDF is encrypted and the password given doesn't open it."""
+
+
+@contextmanager
+def open_pdf(path: str | Path, password: str | None = None) -> Iterator[pdfplumber.PDF]:
+    """Open a PDF, decrypting it with `password` if it's protected. The password
+    is only handed to the PDF library; it never appears in errors or logs."""
+    path = Path(path)
+    pdf = None
+    try:
+        pdf = pdfplumber.open(path, password=password or "")
+        pdf.pages  # decryption happens here at the latest
+    except PdfminerException as e:
+        if pdf is not None:
+            pdf.close()
+        if e.args and isinstance(e.args[0], PDFPasswordIncorrect):
+            # pdfminer reports a missing and a wrong password the same way.
+            if password:
+                raise IncorrectPasswordError(f"the password for {path.name} is incorrect") from None
+            raise PasswordRequiredError(f"{path.name} is password protected") from None
+        raise
+    with pdf:
+        yield pdf
+
+
+def extract_rows(path: str | Path, password: str | None = None) -> list[RawRow]:
+    """`password` is used only for protected PDFs; CSVs ignore it."""
     suffix = Path(path).suffix.lower()
     if suffix == ".csv":
         return extract_csv(path)
     if suffix == ".pdf":
-        return extract_pdf(path)
+        return extract_pdf(path, password=password)
     raise ExtractionError(f"unsupported file type: {Path(path).name}")
 
 
-def extract_header_text(path: str | Path) -> str:
+def extract_header_text(path: str | Path, password: str | None = None) -> str:
     """The text above the transaction table (bank name, account details,
     period), one line per line, for the next stage to pull details out of.
     Empty when the table starts on the first line."""
@@ -68,7 +103,7 @@ def extract_header_text(path: str | Path) -> str:
         return "\n".join(line for line in lines if line)
     if suffix == ".pdf":
         lines = []
-        with pdfplumber.open(path) as pdf:
+        with open_pdf(path, password) as pdf:
             for page in pdf.pages:
                 for words in _lines(page.extract_words()):
                     if _is_header([c.text for c in _split_on_gaps(words)]):
@@ -103,11 +138,13 @@ def _csv_encoding(path: Path) -> str:
 
 # --- PDF ----------------------------------------------------------------------
 
-def extract_pdf(path: str | Path, mode: Literal["auto", "tables", "text"] = "auto") -> list[RawRow]:
+def extract_pdf(
+    path: str | Path, mode: Literal["auto", "tables", "text"] = "auto", password: str | None = None
+) -> list[RawRow]:
     """Read ruled tables with pdfplumber; fall back to positioned text lines when
     no table with a recognisable header is found."""
     path = Path(path)
-    with pdfplumber.open(path) as pdf:
+    with open_pdf(path, password) as pdf:
         if mode in ("auto", "tables"):
             grid = [row for page in pdf.pages for table in page.extract_tables() for row in table]
             if any(_is_header([_clean(c) for c in row]) for row in grid) or mode == "tables":

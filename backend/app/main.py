@@ -9,12 +9,12 @@ import os
 import tempfile
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, Query, Response, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, Response, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import db
-from app.extract import ExtractionError
+from app.extract import ExtractionError, IncorrectPasswordError, PasswordRequiredError
 from app.normalize import NormalizationError
 from app.pipeline import analyze_file
 from app.schema import AnalyzeResponse, HistoryPage
@@ -71,10 +71,17 @@ def get_sample(name: str) -> FileResponse:
         400: {"description": "Empty file"},
         413: {"description": "File larger than 10 MB"},
         415: {"description": "Not a CSV or PDF"},
-        422: {"description": "The file couldn't be parsed as a bank statement; `message` says why"},
+        422: {
+            "description": "The file couldn't be parsed as a bank statement; `message` says why. "
+            '`error` is "password_required" or "incorrect_password" for a locked PDF: ask for the '
+            "password and send the file again with it."
+        },
     },
 )
-def analyze(file: UploadFile = File(..., description="Bank statement, .csv or .pdf")) -> AnalyzeResponse:
+def analyze(
+    file: UploadFile = File(..., description="Bank statement, .csv or .pdf"),
+    password: str | None = Form(None, description="Only for password-protected PDFs. Used to open the file; never stored."),
+) -> AnalyzeResponse:
     # A plain def, not async: the pipeline blocks on file parsing and LLM calls,
     # so FastAPI runs it in a worker thread instead of stalling the event loop.
     name = file.filename or "upload"
@@ -93,7 +100,11 @@ def analyze(file: UploadFile = File(..., description="Bank statement, .csv or .p
         tmp.write(content)
         tmp_path = Path(tmp.name)
     try:
-        result = analyze_file(tmp_path, source_file=name)
+        result = analyze_file(tmp_path, source_file=name, password=password or None)
+    except PasswordRequiredError:
+        raise _error(422, "password_required", f"{name!r} is password protected. Enter its password to continue.") from None
+    except IncorrectPasswordError:
+        raise _error(422, "incorrect_password", f"That password didn't open {name!r}. Check it and try again.") from None
     except (ExtractionError, NormalizationError) as e:
         raise _error(422, "could_not_parse", f"Couldn't read {name!r} as a bank statement: {e}") from None
     except Exception as e:

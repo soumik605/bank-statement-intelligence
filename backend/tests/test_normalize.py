@@ -36,13 +36,15 @@ def _check_against_truth(result, truth):
 
 def test_samples_match_truth(samples):
     for path, truth in samples:
-        _check_against_truth(load_statement(path), truth)
+        _check_against_truth(load_statement(path, truth["password"]), truth)
 
 
 def test_pdf_text_fallback_matches_truth(samples):
     for path, truth in samples:
         if path.suffix == ".pdf":
-            _check_against_truth(normalize(extract_pdf(path, mode="text"), extract_header_text(path)), truth)
+            password = truth["password"]
+            rows = extract_pdf(path, mode="text", password=password)
+            _check_against_truth(normalize(rows, extract_header_text(path, password)), truth)
 
 
 @pytest.mark.parametrize("text, expected", [

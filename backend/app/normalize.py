@@ -42,9 +42,9 @@ class NormalizedStatement:
     skipped: list[SkippedRow] = field(default_factory=list)
 
 
-def load_statement(path: str | Path) -> NormalizedStatement:
-    """Extract and normalize a statement file in one go."""
-    return normalize(extract_rows(path), extract_header_text(path))
+def load_statement(path: str | Path, password: str | None = None) -> NormalizedStatement:
+    """Extract and normalize a statement file in one go. `password` opens a protected PDF."""
+    return normalize(extract_rows(path, password), extract_header_text(path, password))
 
 
 # --- Columns ------------------------------------------------------------------

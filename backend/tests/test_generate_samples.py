@@ -20,7 +20,8 @@ def truths(out_dir):
 
 
 def test_writes_csv_and_pdf(out_dir, truths):
-    assert len(truths) == 4
+    assert len(truths) == 5
+    assert [t["source_file"] for t in truths if t["password"]] == ["sahyadri_feb-mar2026_locked.pdf"]
     assert {t["source_file"].rsplit(".", 1)[1] for t in truths} == {"csv", "pdf"}
     assert all((out_dir / t["source_file"]).stat().st_size > 0 for t in truths)
 

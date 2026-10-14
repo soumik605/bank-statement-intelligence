@@ -11,10 +11,14 @@ from app.summary import summarize
 from app.unusual import detect_unusual
 
 
-def analyze_file(path: str | Path, source_file: str | None = None) -> AnalyzeResponse:
-    """Raises ExtractionError or NormalizationError when the file can't be parsed.
-    LLM failures don't raise; those steps fall back on their own."""
-    statement = load_statement(path)
+def analyze_file(path: str | Path, source_file: str | None = None, password: str | None = None) -> AnalyzeResponse:
+    """Raises ExtractionError or NormalizationError when the file can't be parsed
+    (PasswordRequiredError / IncorrectPasswordError for a locked PDF). LLM
+    failures don't raise; those steps fall back on their own.
+
+    Opening the file is the first step, so a locked PDF fails in well under a
+    second, before any LLM call."""
+    statement = load_statement(path, password)
     transactions = detect_unusual(categorize(statement.transactions))
     analytics = compute_analytics(transactions)
     summary = summarize(statement.statement, analytics, transactions)

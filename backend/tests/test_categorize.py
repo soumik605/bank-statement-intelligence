@@ -67,7 +67,7 @@ def test_rules_never_contradict_truth(tmp_path):
     total = matched = 0
     for truth_path in tmp_path.glob("*.truth.json"):
         truth = json.loads(truth_path.read_text())
-        txns = categorize_by_rules(load_statement(tmp_path / truth["source_file"]).transactions)
+        txns = categorize_by_rules(load_statement(tmp_path / truth["source_file"], truth["password"]).transactions)
         for txn, row in zip(txns, truth["rows"], strict=True):
             total += 1
             if txn.category is not None:

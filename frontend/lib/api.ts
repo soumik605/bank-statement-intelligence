@@ -2,7 +2,12 @@ import type { AnalyzeResponse, HistoryPage } from "./types";
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
-export class ApiError extends Error {}
+export class ApiError extends Error {
+  // The backend's machine-readable reason, e.g. "password_required"; null for network errors.
+  constructor(message: string, public code: string | null = null) {
+    super(message);
+  }
+}
 
 async function request(path: string, init?: RequestInit): Promise<Response> {
   let response: Response;
@@ -18,20 +23,24 @@ async function request(path: string, init?: RequestInit): Promise<Response> {
   }
   if (!response.ok) {
     let message = `The server returned an error (HTTP ${response.status}).`;
+    let code: string | null = null;
     try {
       const body = await response.json();
       if (typeof body?.detail?.message === "string") message = body.detail.message;
+      if (typeof body?.detail?.error === "string") code = body.detail.error;
     } catch {
       // not JSON; keep the generic message
     }
-    throw new ApiError(message);
+    throw new ApiError(message, code);
   }
   return response;
 }
 
-export async function analyze(file: File, signal?: AbortSignal): Promise<AnalyzeResponse> {
+// `password` is only for protected PDFs; it's sent once to open the file and never stored.
+export async function analyze(file: File, signal?: AbortSignal, password?: string): Promise<AnalyzeResponse> {
   const form = new FormData();
   form.append("file", file);
+  if (password) form.append("password", password);
   const response = await request("/analyze", { method: "POST", body: form, signal });
   return response.json();
 }

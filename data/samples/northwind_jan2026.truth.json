@@ -1,5 +1,6 @@
 {
   "source_file": "northwind_jan2026.csv",
+  "password": null,
   "statement": {
     "bank_name": null,
     "account_number": null,

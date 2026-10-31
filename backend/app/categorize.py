@@ -138,17 +138,27 @@ DIRECTION: dict[Category, TransactionType] = {
 
 # Whole-word match: the keyword can't have a letter or digit right before or after it.
 _PATTERNS = [
-    (re.compile(rf"(?<![A-Z0-9]){re.escape(kw)}(?![A-Z0-9])"), category) for kw, category in KEYWORDS.items()
+    (kw, re.compile(rf"(?<![A-Z0-9]){re.escape(kw)}(?![A-Z0-9])"), category) for kw, category in KEYWORDS.items()
 ]
 
 
 def match_rule(description: str, txn_type: TransactionType) -> Category | None:
     """The category for this description, or None if no rule applies."""
     text = " ".join(description.upper().split())
-    for pattern, category in _PATTERNS:
+    for _, pattern, category in _PATTERNS:
         if pattern.search(text) and DIRECTION.get(category, txn_type) == txn_type:
             return category
     return None
+
+
+def why_no_rule(description: str, txn_type: TransactionType) -> str:
+    """Why match_rule found nothing, for the log: no keyword at all, or only
+    keywords whose category goes the other way."""
+    text = " ".join(description.upper().split())
+    for kw, pattern, category in _PATTERNS:
+        if pattern.search(text):
+            return f"keyword {kw!r} means {category.value}, which is never a {txn_type}"
+    return "no keyword rule matched"
 
 
 def categorize_by_rules(transactions: list[Transaction]) -> list[Transaction]:
@@ -210,11 +220,20 @@ def categorize_with_llm(
     """
     pending = {i: t for i, t in enumerate(transactions) if t.category is None}
     if not pending:
+        log.info("Rules categorized all %d transactions; no AI call needed", len(transactions))
         return transactions
+    log.info(
+        "Rules categorized %d of %d transactions; asking the AI for the other %d because:\n%s",
+        len(transactions) - len(pending), len(transactions), len(pending),
+        "\n".join(f"  {i}: {t.description!r} ({t.type}): {why_no_rule(t.description, t.type)}" for i, t in pending.items()),
+    )
     if complete is None:
         # Roughly 20 tokens per {"id": .., "category": ".."} entry, plus slack.
         max_tokens = 64 + 24 * len(pending)
-        complete = lambda messages: llm.chat(messages, model=model, temperature=0, max_tokens=max_tokens)  # noqa: E731
+        purpose = f"categorize {len(pending)} transactions no rule matched"
+        complete = lambda messages: llm.chat(  # noqa: E731
+            messages, model=model, temperature=0, max_tokens=max_tokens, purpose=purpose
+        )
 
     batch = [
         {"id": i, "description": t.description, "amount": t.amount, "type": t.type}

@@ -10,8 +10,10 @@ from the repo-root .env (see .env.example):
     LLM_MODEL        which of MODELS is the default (its key or model id);
                      any other model id also works, as a custom default
 """
+import logging
 import os
 import re
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -19,6 +21,8 @@ import httpx
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+
+log = logging.getLogger(__name__)
 
 DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1"
 
@@ -106,13 +110,18 @@ def chat(
     temperature: float = 0,
     max_tokens: int = 1024,
     timeout: float = 60,
+    purpose: str = "unspecified",
 ) -> str:
-    """Send a chat request and return the reply text (without any reasoning)."""
+    """Send a chat request and return the reply text (without any reasoning).
+    `purpose` says why the call is made; it goes in the log lines for this call."""
     chosen = resolve_model(model)
     key = api_key(chosen)
     if not key:
+        log.warning("AI call skipped [%s]: %s", purpose, missing_key_message(chosen))
         raise LLMError(missing_key_message(chosen))
     base_url = os.environ.get("LLM_BASE_URL", DEFAULT_BASE_URL).rstrip("/")
+    log.info("AI call -> %s [%s]", chosen.id, purpose)
+    started = time.monotonic()
     try:
         response = httpx.post(
             f"{base_url}/chat/completions",
@@ -128,10 +137,18 @@ def chat(
             timeout=timeout,
         )
         response.raise_for_status()
-        content = response.json()["choices"][0]["message"]["content"] or ""
+        body = response.json()
+        content = body["choices"][0]["message"]["content"] or ""
     except httpx.HTTPStatusError as e:
+        log.warning("AI call failed [%s] after %.1fs: HTTP %s", purpose, time.monotonic() - started, e.response.status_code)
         raise LLMError(f"LLM request failed: HTTP {e.response.status_code}: {e.response.text[:300]}") from None
     except (httpx.HTTPError, KeyError, IndexError, ValueError) as e:
+        log.warning("AI call failed [%s] after %.1fs: %r", purpose, time.monotonic() - started, e)
         raise LLMError(f"LLM request failed: {e!r}") from None
+    usage = body.get("usage") or {}
+    log.info(
+        "AI reply <- %s [%s] in %.1fs, tokens in/out: %s/%s",
+        chosen.id, purpose, time.monotonic() - started, usage.get("prompt_tokens", "?"), usage.get("completion_tokens", "?"),
+    )
     # Reasoning normally arrives in a separate field; strip it if a model inlines it.
     return _THINKING.sub("", content).strip()

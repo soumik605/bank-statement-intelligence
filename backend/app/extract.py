@@ -21,6 +21,7 @@ interpretation.
 """
 import bisect
 import csv
+import logging
 import re
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -34,6 +35,8 @@ from pdfminer.pdfdocument import PDFPasswordIncorrect
 from pdfplumber.utils.exceptions import PdfminerException
 
 from app.headers import column_role, is_header_hint
+
+log = logging.getLogger(__name__)
 
 RawRow = dict[str, str]
 
@@ -100,7 +103,7 @@ def extract_header_text(path: str | Path, password: str | None = None) -> str:
         lines = []
         with open_pdf(path, password) as pdf:
             for page in pdf.pages:
-                for words in _lines(page.extract_words()):
+                for words in _merge_stacked_headers(_lines(page.extract_words())):
                     if _is_header([c.text for c in _split_on_gaps(words)]):
                         return "\n".join(lines)
                     # Wide gaps become 3 spaces, which parse_header treats as a field break.
@@ -141,15 +144,29 @@ def extract_pdf(
     no table with a recognisable header is found."""
     path = Path(path)
     with open_pdf(path, password) as pdf:
+        if not any(page.chars for page in pdf.pages):
+            raise ExtractionError(
+                f"{path.name} has no text in it; it looks like a scanned image. Scanned statements "
+                "aren't supported yet: download the statement from your bank as a PDF or CSV instead"
+            )
         if mode in ("auto", "tables"):
             grid = [row for page in pdf.pages for table in page.extract_tables() for row in table]
             if mode == "tables":
                 return _rows_from_grid(grid, path.name)
-            if any(_is_header([_clean(c) for c in row]) for row in grid) and not _has_stacked_rows(grid):
+            if not any(_is_header([_clean(c) for c in row]) for row in grid):
+                why = "the table reader found no header row with a date column"
+            elif _has_stacked_rows(grid):
+                why = "the table reader merged several rows into one (no lines between rows)"
+            else:
                 rows = _rows_from_grid(grid, path.name)
-                if rows:  # a header with nothing under it: the table reader missed the body
+                if rows:
+                    log.info("%s: read with the table reader, %d rows", path.name, len(rows))
                     return rows
-        return _rows_from_grid(_text_grid(pdf), path.name)
+                why = "the table reader found a header with no rows under it"
+            log.info("%s: reading by text position instead, because %s", path.name, why)
+        rows = _rows_from_grid(_text_grid(pdf), path.name)
+        log.info("%s: read by text position, %d rows", path.name, len(rows))
+        return rows
 
 
 def _has_stacked_rows(grid: list) -> bool:
@@ -194,9 +211,18 @@ def _text_grid(pdf: pdfplumber.PDF) -> list[list[str]]:
     bounded = False  # columns come from drawn rules, so their right edges are exact
     for page in pdf.pages:
         last_line: dict[int, dict] = {}  # column -> last word of the previous data line; text never wraps across pages
-        lines = _lines(page.extract_words())
+        lines = _merge_stacked_headers(_lines(page.extract_words()))
         bounds = _column_lines(page)
-        cells = [_split_on_lines(words, bounds) if bounds else _split_on_gaps(words) for words in lines]
+        cells, ruled = [], []
+        for words in lines:
+            # Trust the drawn rules only where they split a line at least as finely as
+            # the gaps do. Some tables rule off only some columns, and some rules
+            # belong to a box beside the table, not to the table at all.
+            by_gaps = _split_on_gaps(words)
+            by_rules = _split_on_lines(words, bounds) if bounds else []
+            use_rules = bool(by_rules) and len(by_rules) >= len(by_gaps)
+            cells.append(by_rules if use_rules else by_gaps)
+            ruled.append(use_rules)
         texts_per_line = [[c.text for c in line] for line in cells]
         # Only the statement's own header starts the table. Another header-like line
         # (a summary block's "Opening Balance  Dr Count  Cr Count") is just a row.
@@ -210,9 +236,9 @@ def _text_grid(pdf: pdfplumber.PDF) -> list[list[str]]:
         # that don't repeat it keep everything; furniture there is skipped later
         # because it has no transaction date.
         start = is_header.index(True) if True in is_header else 0
-        for words, line_cells, header in zip(lines[start:], cells[start:], is_header[start:]):
+        for words, line_cells, line_ruled, header in zip(lines[start:], cells[start:], ruled[start:], is_header[start:]):
             if header:
-                columns, bounded, last_line = line_cells, bool(bounds), {}  # positions re-read on every page
+                columns, bounded, last_line = line_cells, line_ruled, {}  # positions re-read on every page
                 grid.append([c.text for c in line_cells])
                 continue
             if columns is None:
@@ -286,6 +312,50 @@ def _lines(words: list[dict], tolerance: float = 3) -> list[list[dict]]:
     return [sorted(line, key=lambda w: w["x0"]) for line in lines]
 
 
+def _merge_stacked_headers(lines: list[list[dict]]) -> list[list[dict]]:
+    """A header printed over two lines ("Transaction" above "Date", "Cheque"
+    above "Number") becomes one line, one word per column ("Transaction Date").
+    Two lines are merged only when neither is a header alone and together they are."""
+    out: list[list[dict]] = []
+    i = 0
+    while i < len(lines):
+        if i + 1 < len(lines):
+            top, below = lines[i], lines[i + 1]
+            height = max(w["bottom"] - w["top"] for w in top)
+            merged = _stack(top, below)
+            if (
+                below[0]["top"] - top[0]["top"] <= 2.5 * height
+                and not _is_header([c.text for c in _split_on_gaps(top)])
+                and not _is_header([c.text for c in _split_on_gaps(below)])
+                and _is_header([w["text"] for w in merged])
+            ):
+                out.append(merged)
+                i += 2
+                continue
+        out.append(lines[i])
+        i += 1
+    return out
+
+
+def _stack(top: list[dict], below: list[dict], gap: float = 6) -> list[dict]:
+    """Group the words of two lines into columns by horizontal overlap; each
+    column becomes one word reading top line first."""
+    groups: list[list[dict]] = []
+    for w in sorted(top + below, key=lambda w: w["x0"]):
+        if groups and w["x0"] - max(g["x1"] for g in groups[-1]) <= gap:
+            groups[-1].append(w)
+        else:
+            groups.append([w])
+    return [
+        {
+            "text": " ".join(w["text"] for w in sorted(g, key=lambda w: (w["top"], w["x0"]))),
+            "x0": min(w["x0"] for w in g), "x1": max(w["x1"] for w in g),
+            "top": top[0]["top"], "bottom": max(w["bottom"] for w in g),
+        }
+        for g in groups
+    ]
+
+
 def _split_on_gaps(words: list[dict], gap: float = 6) -> list[_Cell]:
     """Group a line's words into cells wherever the gap is wider than a space."""
     cells: list[_Cell] = []
@@ -317,10 +387,16 @@ def _clean(cell: object) -> str:
 
 def _is_header(cells: list[str]) -> bool:
     """At least three cells that read like column names ("Date", "WithdrawalAmt."),
-    and no digits, which keeps out preamble lines like "Opening Balance,6,20,400.00"
-    and data rows."""
+    one of them a date, and no digits. The digits rule keeps out preamble lines
+    like "Opening Balance,6,20,400.00" and data rows; the date rule keeps out
+    summary boxes above the table ("Brought Forward  Dr Count  Total Debits
+    Closing Balance"), since every transaction table has a date column."""
     filled = [c for c in cells if c]
-    return sum(is_header_hint(c) for c in filled) >= 3 and not any(ch.isdigit() for c in filled for ch in c)
+    return (
+        sum(is_header_hint(c) for c in filled) >= 3
+        and any((column_role(c) or ("",))[0] == "date" for c in filled)
+        and not any(ch.isdigit() for c in filled for ch in c)
+    )
 
 
 def _is_text_column(name: str) -> bool:
@@ -361,5 +437,9 @@ def _rows_from_grid(grid: list, source: str) -> list[RawRow]:
             continue
         rows.append(dict(zip(names, cells)))
     if header is None:
+        log.warning(
+            "%s: no header row found: no line has 3+ column names, one of them a date, and no digits", source
+        )
         raise ExtractionError(f"{source}: no header row found")
+    log.info("%s: header row is %s", source, header)
     return rows

@@ -125,7 +125,10 @@ def summarize(
     model: str | None = None,
 ) -> Summary:
     source = build_summary_input(statement, analytics, transactions)
-    complete = complete or (lambda messages: llm.chat(messages, model=model, temperature=0, max_tokens=400))
+    purpose = "write the plain-English summary"  # updated before a retry; read by the lambda at call time
+    complete = complete or (
+        lambda messages: llm.chat(messages, model=model, temperature=0, max_tokens=400, purpose=purpose)
+    )
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": json.dumps(source, ensure_ascii=False, indent=2)},
@@ -133,12 +136,16 @@ def summarize(
 
     bad: list[str] = []
     for attempt in range(2):
+        if attempt:
+            purpose = f"rewrite the summary: attempt {attempt} used numbers not in the input ({', '.join(bad)})"
+        log.info("Asking the AI to %s", purpose)
         try:
             text = _clean(complete(messages))
         except Exception as e:  # network, auth, rate limit
             log.warning("LLM summary failed, using template: %s", e)
             return Summary(template_summary(source), "template")
         if not text:
+            log.warning("LLM summary came back empty; using the template")
             break
         bad = unsupported_numbers(text, source)
         if not bad:
@@ -151,6 +158,8 @@ def summarize(
                 "numbers that appear in the input, copied exactly. Do not calculate anything."
             )},
         ]
+    if bad:
+        log.warning("LLM summary still had made-up numbers after a retry; using the template")
     return Summary(template_summary(source), "template", bad)
 
 

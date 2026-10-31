@@ -64,6 +64,8 @@ def test_pdf_text_fallback_matches_truth(samples):
     ("(250.00)", (Decimal("-250.00"), None)),
     ("-250.00", (Decimal("-250.00"), None)),
     ("", (None, None)),
+    ("-", (None, None)),  # a dash for an empty cell
+    ("-$505.00", (Decimal("-505.00"), None)),
 ])
 def test_parse_amount(text, expected):
     assert parse_amount(text) == expected

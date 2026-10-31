@@ -7,8 +7,9 @@
   Commas are stripped whatever the grouping, so Indian 1,23,456 and western
   123,456 both work.
 - Dates are parsed day-first, from an explicit list of formats only.
-  "05/01/2026" is 5 January, and a date that only makes sense month-first is
-  an error, never silently swapped.
+  "05/01/2026" is 5 January. A statement is read month-first only when its own
+  date column proves it (some date like 01/18/2023 and none like 18/01/2023);
+  a single date is never swapped on its own.
 - Account details come from the text above the table, and the account number
   is masked to XXXX1234.
 
@@ -21,6 +22,7 @@ Every date comes out as a datetime.date, serialized as ISO YYYY-MM-DD, whatever
 format the bank printed.
 """
 import datetime as dt
+import logging
 import re
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
@@ -30,6 +32,7 @@ from app.extract import RawRow, extract_header_text, extract_rows
 from app.headers import column_role
 from app.schema import StatementInfo, Transaction, TransactionType
 
+log = logging.getLogger(__name__)
 
 class NormalizationError(ValueError):
     pass
@@ -72,14 +75,19 @@ def map_columns(columns: list[str]) -> dict[str, str]:
         if fld not in best or (rank, position) < best[fld][:2]:
             best[fld] = (rank, position, column)
     mapping = {fld: column for fld, (_, _, column) in best.items()}
+    read_as = ", ".join(f"{c!r} -> {(column_role(c) or ('unused',))[0]}" for c in columns)
 
     has_amounts = {"debit", "credit"} <= mapping.keys() or "amount" in mapping
     if "date" not in mapping or "description" not in mapping or not has_amounts:
-        read_as = ", ".join(f"{c!r} -> {(column_role(c) or ('unused',))[0]}" for c in columns)
+        missing = [f for f in ("date", "description") if f not in mapping]
+        if not has_amounts:
+            missing.append("amount (or a debit and a credit column)")
+        log.warning("Column mapping failed: no column found for %s. Read the columns as: %s", ", ".join(missing), read_as)
         raise NormalizationError(
             "can't map columns: need a date, a description, and either separate debit and credit "
             f"columns or one amount column. Read the columns as: {read_as}"
         )
+    log.info("Columns mapped by header words (no AI): %s", read_as)
     return mapping
 
 
@@ -94,14 +102,18 @@ def _usable_marker(rows: list[RawRow], column: str) -> bool:
 
 # --- Values -------------------------------------------------------------------
 
-# Day-first only. There is deliberately no %m/%d format: Indian statements are
-# DD/MM, and a month-first fallback would silently turn 05/01 into May 1.
+# Day-first by default: Indian statements are DD/MM, and a per-date month-first
+# fallback would silently turn 05/01 into May 1. See _is_month_first.
 DATE_FORMATS = (
     "%d/%m/%Y", "%d/%m/%y", "%d-%m-%Y", "%d-%m-%y", "%d.%m.%Y", "%d.%m.%y",
     "%d-%b-%Y", "%d-%b-%y", "%d %b %Y", "%d %b %y", "%d/%b/%Y", "%d/%b/%y",
     "%d %B %Y", "%d-%B-%Y", "%d %b, %Y", "%d %B, %Y",
     "%Y-%m-%d",  # ISO; the 4-digit year first makes it unambiguous
 )
+MONTH_FIRST_FORMATS = tuple(
+    f.replace("%d/%m", "%m/%d").replace("%d-%m", "%m-%d").replace("%d.%m", "%m.%d") for f in DATE_FORMATS
+)
+_NUMERIC_DATE = re.compile(r"^(\d{1,2})[/\-.](\d{1,2})[/\-.]\d{2,4}\b")
 # Something shaped like a date: 05/01/26, 05-Jan-2026, 5 January 2026, 2026-01-05,
 # 20260105. Used to tell a date the parser can't read (an error) from text that
 # isn't a date at all, like the figures of a summary block (skipped).
@@ -113,9 +125,16 @@ _DATE_LIKE = re.compile(
 _TIME = re.compile(r"\s+\d{1,2}:\d{2}(?::\d{2})?\s*(?:am|pm)?$", re.IGNORECASE)
 
 
-def parse_date(text: str) -> dt.date:
+def _is_month_first(texts: list[str]) -> bool:
+    """True only when the column proves MM/DD: some date's second number is
+    above 12 and no date's first number is. Otherwise day-first."""
+    pairs = [(int(m[1]), int(m[2])) for t in texts if (m := _NUMERIC_DATE.match(t.strip()))]
+    return any(b > 12 for _, b in pairs) and not any(a > 12 for a, _ in pairs)
+
+
+def parse_date(text: str, month_first: bool = False) -> dt.date:
     s = _TIME.sub("", " ".join(text.split()))
-    for fmt in DATE_FORMATS:
+    for fmt in MONTH_FIRST_FORMATS if month_first else DATE_FORMATS:
         try:
             return dt.datetime.strptime(s, fmt).date()
         except ValueError:
@@ -123,7 +142,7 @@ def parse_date(text: str) -> dt.date:
     raise ValueError(f"unrecognised date {text!r} (expected day-first, e.g. 05/01/2026)")
 
 
-_CURRENCY = re.compile(r"₹|\bINR\b|\bRs\b\.?", re.IGNORECASE)
+_CURRENCY = re.compile(r"₹|\$|\bINR\b|\bRs\b\.?", re.IGNORECASE)
 _MARKER = re.compile(r"(?<![a-z])(dr|cr)(?![a-z])\.?", re.IGNORECASE)
 _NUMBER = re.compile(r"\d+(?:,\d+)*(?:\.\d+)?|\.\d+")
 
@@ -140,6 +159,8 @@ def parse_amount(text: str) -> tuple[Decimal | None, TransactionType | None]:
         marker = "debit" if markers[0].lower() == "dr" else "credit"
         s = _MARKER.sub("", s).replace("()", "")
     s = "".join(s.split())
+    if s in {"-", "–", "—"}:
+        s = ""  # some banks print a dash in an empty amount cell
     if not s:
         if marker:
             raise ValueError(f"Dr/Cr marker without a number in {text!r}")
@@ -227,6 +248,9 @@ def normalize(rows: list[RawRow], header_text: str = "") -> NormalizedStatement:
     transactions: list[Transaction] = []
     skipped: list[SkippedRow] = []
     typed_by_sign: list[Decimal] = []
+    month_first = _is_month_first([row[cols["date"]] for row in rows])
+    if month_first:
+        log.info("Reading dates month-first: a date in %r only makes sense as MM/DD", cols["date"])
 
     for n, row in enumerate(rows, start=1):
         date_text = _TIME.sub("", " ".join(row[cols["date"]].split()))
@@ -245,7 +269,7 @@ def normalize(rows: list[RawRow], header_text: str = "") -> NormalizedStatement:
                 "were read as one row. The table probably has no lines between rows."
             )
         try:
-            date = parse_date(date_text)
+            date = parse_date(date_text, month_first)
             amount, txn_type = _amount_and_type(row, cols, typed_by_sign)
             balance = _balance(row[cols["balance"]]) if "balance" in cols else None
         except ValueError as e:

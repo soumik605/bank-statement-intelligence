@@ -20,6 +20,10 @@ from app.normalize import NormalizationError
 from app.pipeline import analyze_file
 from app.schema import AnalyzeResponse, FailureItem, FailurePage, HistoryPage, ModelList, ModelOption
 
+# Print the app's own INFO lines (each AI call and why, how columns were read)
+# next to uvicorn's; on Vercel they show in the project's Logs tab.
+logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO").upper(), format="%(levelname)s %(name)s: %(message)s")
+logging.getLogger("httpx").setLevel(logging.WARNING)  # app.llm already logs each AI call
 log = logging.getLogger(__name__)
 
 SUPPORTED_SUFFIXES = {".csv", ".pdf"}

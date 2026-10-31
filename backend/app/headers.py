@@ -19,6 +19,7 @@ VOCABULARY = frozenset({
     "remarks", "remark",
     # money out / in
     "debit", "debits", "withdrawal", "withdrawals", "withdraw", "payment", "payments", "paid", "out",
+    "withdrawl", "withdrawls",  # misspelt in real exports
     "credit", "credits", "deposit", "deposits", "receipt", "receipts", "received", "in", "money",
     "dr", "cr",
     # amounts and balance
@@ -33,7 +34,8 @@ _LONGEST = max(map(len, VOCABULARY))
 DATE_WORDS = {"date", "dt"}
 DESCRIPTION_WORDS = {"narration", "narrative", "particulars", "particular", "description", "desc",
                      "details", "detail", "remarks", "remark"}
-DEBIT_WORDS = {"debit", "debits", "withdrawal", "withdrawals", "withdraw", "payment", "payments", "dr"}
+DEBIT_WORDS = {"debit", "debits", "withdrawal", "withdrawals", "withdraw", "withdrawl", "withdrawls",
+               "payment", "payments", "dr"}
 CREDIT_WORDS = {"credit", "credits", "deposit", "deposits", "receipt", "receipts", "received", "cr"}
 AMOUNT_WORDS = {"amount", "amounts", "amt"}
 BALANCE_WORDS = {"balance", "bal"}

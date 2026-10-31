@@ -27,6 +27,7 @@ def test_header_words(name, words):
     ("Withdrawals", "debit"), ("Withdrawal (Dr)", "debit"), ("Debit", "debit"), ("DebitAmount", "debit"),
     ("Debit Amt", "debit"), ("Dr Amount", "debit"), ("Amount (Dr)", "debit"), ("Dr", "debit"),
     ("Paid Out", "debit"), ("Money Out", "debit"), ("Payments", "debit"), ("Debit(₹)", "debit"),
+    ("Withdrawls", "debit"),  # misspelt in real exports
     # money in
     ("DepositAmt.", "credit"), ("Deposit Amt.", "credit"), ("Deposits", "credit"), ("Credit", "credit"),
     ("CreditAmount", "credit"), ("Cr Amount", "credit"), ("Amount(Cr)", "credit"), ("Paid In", "credit"),

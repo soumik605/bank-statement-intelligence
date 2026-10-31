@@ -31,7 +31,7 @@ lint: ## Frontend type-check and lint; check docs/schema.json is current
 
 check: test lint ## Everything above, as CI would run it
 
-samples: ## Regenerate the synthetic statements in data/samples/
+samples: ## Regenerate the synthetic statements in backend/samples/
 	cd backend && uv run python scripts/generate_samples.py
 
 schema: ## Regenerate docs/schema.json from the backend models

@@ -1,12 +1,12 @@
 """Generate fake bank statements with known answers, for testing parsers.
 
-Writes four statements to data/samples/, each in a different layout, and next to
+Writes four statements to backend/samples/, each in a different layout, and next to
 each one a <name>.truth.json holding the correct parse of every row. All banks,
 people and account numbers are invented; no real bank data is used. Output is
 deterministic, so rerunning only changes files when this script changes.
 
 Usage (from backend/):
-    uv run python scripts/generate_samples.py               # write to data/samples/
+    uv run python scripts/generate_samples.py               # write to samples/
     uv run python scripts/generate_samples.py --out DIR     # write somewhere else
 """
 import argparse
@@ -35,7 +35,7 @@ sys.path.insert(0, str(BACKEND_DIR))
 
 from app.schema import Category, StatementInfo, Transaction  # noqa: E402
 
-OUTPUT_DIR = BACKEND_DIR.parent / "data" / "samples"
+OUTPUT_DIR = BACKEND_DIR / "samples"
 SEED = 2026
 
 # Same bytes on every run: no embedded timestamps or random document IDs.

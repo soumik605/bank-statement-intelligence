@@ -13,7 +13,9 @@ Uploaded files are stored next to the database in uploads/, named by their
 SHA-256, so the same file uploaded twice is stored once. A protected PDF is
 stored as uploaded, still encrypted; its password is never stored.
 
-The database lives at data/history.db, or wherever DATABASE_PATH points.
+The database lives at data/history.db, or wherever DATABASE_PATH points. On
+Vercel the code's filesystem is read-only, so it defaults to /tmp there; /tmp
+is per instance and wiped when the instance stops, so history doesn't last.
 """
 import datetime as dt
 import hashlib
@@ -26,7 +28,8 @@ from pathlib import Path
 
 from app.schema import AnalyzeResponse, FailureItem, FailurePage, HistoryItem, HistoryPage
 
-DB_PATH = Path(os.environ.get("DATABASE_PATH") or Path(__file__).resolve().parents[2] / "data" / "history.db")
+_DEFAULT_DIR = Path("/tmp") if os.environ.get("VERCEL") else Path(__file__).resolve().parents[2] / "data"
+DB_PATH = Path(os.environ.get("DATABASE_PATH") or _DEFAULT_DIR / "history.db")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS analyses (

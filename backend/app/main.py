@@ -23,7 +23,8 @@ from app.schema import AnalyzeResponse, FailureItem, FailurePage, HistoryPage, M
 log = logging.getLogger(__name__)
 
 SUPPORTED_SUFFIXES = {".csv", ".pdf"}
-SAMPLES_DIR = Path(__file__).resolve().parents[2] / "data" / "samples"
+# Inside backend/ so a deploy with backend/ as its root still ships them.
+SAMPLES_DIR = Path(__file__).resolve().parents[1] / "samples"
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 app = FastAPI(

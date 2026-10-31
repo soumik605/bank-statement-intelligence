@@ -19,6 +19,7 @@ import re
 from collections.abc import Callable
 
 from app import llm
+from app.formatting import plural
 from app.schema import Category, Transaction, TransactionType
 
 log = logging.getLogger(__name__)
@@ -157,8 +158,11 @@ def why_no_rule(description: str, txn_type: TransactionType) -> str:
     text = " ".join(description.upper().split())
     for kw, pattern, category in _PATTERNS:
         if pattern.search(text):
-            return f"keyword {kw!r} means {category.value}, which is never a {txn_type}"
-    return "no keyword rule matched"
+            return f"it mentions {kw!r} (usually {category.value}), but this is {_IN_WORDS[txn_type]}"
+    return "no known keyword in the description"
+
+
+_IN_WORDS = {"debit": "money going out", "credit": "money coming in"}
 
 
 def categorize_by_rules(transactions: list[Transaction]) -> list[Transaction]:
@@ -220,17 +224,19 @@ def categorize_with_llm(
     """
     pending = {i: t for i, t in enumerate(transactions) if t.category is None}
     if not pending:
-        log.info("Rules categorized all %d transactions; no AI call needed", len(transactions))
+        log.info("  Sorted all %s using known keywords (like SWIGGY → Food); the AI wasn't needed",
+                 plural(len(transactions), "transaction"))
         return transactions
     log.info(
-        "Rules categorized %d of %d transactions; asking the AI for the other %d because:\n%s",
-        len(transactions) - len(pending), len(transactions), len(pending),
-        "\n".join(f"  {i}: {t.description!r} ({t.type}): {why_no_rule(t.description, t.type)}" for i, t in pending.items()),
+        "  Sorted %d of %s using known keywords (like SWIGGY → Food). The AI will look at the other %d, because:",
+        len(transactions) - len(pending), plural(len(transactions), "transaction"), len(pending),
     )
+    for t in pending.values():
+        log.info("    • %r: %s", t.description, why_no_rule(t.description, t.type))
     if complete is None:
         # Roughly 20 tokens per {"id": .., "category": ".."} entry, plus slack.
         max_tokens = 64 + 24 * len(pending)
-        purpose = f"categorize {len(pending)} transactions no rule matched"
+        purpose = f"sort the {plural(len(pending), 'transaction')} the keywords couldn't"
         complete = lambda messages: llm.chat(  # noqa: E731
             messages, model=model, temperature=0, max_tokens=max_tokens, purpose=purpose
         )
@@ -246,20 +252,31 @@ def categorize_with_llm(
     try:
         reply = complete(messages)
     except Exception as e:  # network, auth, rate limit: degrade, don't crash the pipeline
-        log.warning("LLM categorization failed, using Other for %d transactions: %s", len(pending), e)
-        reply = ""
+        # llm.chat has already logged why in words; anything else is worth showing as is.
+        log.warning(
+            "  The AI couldn't sort them%s, so marking %s as Other",
+            "" if isinstance(e, llm.LLMError) else f" ({e})", plural(len(pending), "transaction"),
+        )
+        return [t.model_copy(update={"category": Category.OTHER, "category_source": "llm"}) if i in pending else t
+                for i, t in enumerate(transactions)]
     chosen = parse_llm_reply(reply, set(pending))
 
     out = list(transactions)
     for i, txn in pending.items():
         category = chosen.get(i, Category.OTHER)
         if DIRECTION.get(category, txn.type) != txn.type:
-            log.warning("LLM put %s transaction %d (%r) in %s; using Other", txn.type, i, txn.description, category)
+            log.warning(
+                "  The AI put %r under %s, but it's %s, so that can't be right; marked Other instead",
+                txn.description, category.value, _IN_WORDS[txn.type],
+            )
             category = Category.OTHER
         out[i] = txn.model_copy(update={"category": category, "category_source": "llm"})
     missing = set(pending) - set(chosen)
     if missing:
-        log.warning("LLM gave no usable category for ids %s; using Other", sorted(missing))
+        log.warning("  The AI gave no usable answer for %s; marked Other", plural(len(missing), "transaction"))
+    log.info("  The AI's answers:")
+    for i in pending:
+        log.info("    • %r → %s", out[i].description, out[i].category.value)
     return out
 
 
@@ -280,7 +297,7 @@ def parse_llm_reply(text: str, valid_ids: set[int]) -> dict[int, Category]:
     except ValueError:
         items = None
     if not isinstance(items, list):
-        log.warning("LLM reply has no JSON array: %r", (text or "")[:200])
+        log.warning("  The AI's answer wasn't in the expected format, so it can't be used. It said: %r", (text or "")[:200])
         return {}
 
     chosen: dict[int, Category] = {}
@@ -296,7 +313,7 @@ def parse_llm_reply(text: str, valid_ids: set[int]) -> dict[int, Category]:
             continue  # unknown id, or a repeat: keep the first answer
         category = _CATEGORY_BY_NAME.get(str(raw_category).strip().lower())
         if category is None:
-            log.warning("LLM returned unknown category %r for id %s; using Other", raw_category, txn_id)
+            log.warning("  The AI suggested a category that doesn't exist (%r); using Other", raw_category)
             category = Category.OTHER
         chosen[txn_id] = category
     return chosen

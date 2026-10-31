@@ -78,8 +78,10 @@ def extract_rows(path: str | Path, password: str | None = None) -> list[RawRow]:
     """`password` is used only for protected PDFs; CSVs ignore it."""
     suffix = Path(path).suffix.lower()
     if suffix == ".csv":
+        log.info("  It's a CSV file (a spreadsheet export)")
         return extract_csv(path)
     if suffix == ".pdf":
+        log.info("  It's a PDF file")
         return extract_pdf(path, password=password)
     raise ExtractionError(f"unsupported file type: {Path(path).name}")
 
@@ -145,6 +147,7 @@ def extract_pdf(
     path = Path(path)
     with open_pdf(path, password) as pdf:
         if not any(page.chars for page in pdf.pages):
+            log.warning("  The PDF has no text at all; it's probably a scanned image or a photo")
             raise ExtractionError(
                 f"{path.name} has no text in it; it looks like a scanned image. Scanned statements "
                 "aren't supported yet: download the statement from your bank as a PDF or CSV instead"
@@ -154,18 +157,18 @@ def extract_pdf(
             if mode == "tables":
                 return _rows_from_grid(grid, path.name)
             if not any(_is_header([_clean(c) for c in row]) for row in grid):
-                why = "the table reader found no header row with a date column"
+                why = "no column headings with a date were found in its table lines"
             elif _has_stacked_rows(grid):
-                why = "the table reader merged several rows into one (no lines between rows)"
+                why = "the table has no lines between rows, so several rows came out stuck together"
             else:
                 rows = _rows_from_grid(grid, path.name)
                 if rows:
-                    log.info("%s: read with the table reader, %d rows", path.name, len(rows))
+                    log.info("  Read %d lines from the table drawn in the PDF (%d pages)", len(rows), len(pdf.pages))
                     return rows
-                why = "the table reader found a header with no rows under it"
-            log.info("%s: reading by text position instead, because %s", path.name, why)
+                why = "it had column headings but no rows under them"
+            log.info("  Couldn't use the PDF's drawn table (%s), so reading words by where they sit on the page", why)
         rows = _rows_from_grid(_text_grid(pdf), path.name)
-        log.info("%s: read by text position, %d rows", path.name, len(rows))
+        log.info("  Read %d lines by their position on the page (%d pages)", len(rows), len(pdf.pages))
         return rows
 
 
@@ -438,8 +441,9 @@ def _rows_from_grid(grid: list, source: str) -> list[RawRow]:
         rows.append(dict(zip(names, cells)))
     if header is None:
         log.warning(
-            "%s: no header row found: no line has 3+ column names, one of them a date, and no digits", source
+            "  Couldn't find the table's column headings: no line has at least 3 headings (one of them a date) "
+            "without any numbers in it"
         )
         raise ExtractionError(f"{source}: no header row found")
-    log.info("%s: header row is %s", source, header)
+    log.info("  Found the column headings: %s", " | ".join(c for c in header if c))
     return rows

@@ -22,7 +22,9 @@ from app.schema import AnalyzeResponse, FailureItem, FailurePage, HistoryPage, M
 
 # Print the app's own INFO lines (each AI call and why, how columns were read)
 # next to uvicorn's; on Vercel they show in the project's Logs tab.
-logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO").upper(), format="%(levelname)s %(name)s: %(message)s")
+logging.basicConfig(
+    level=os.environ.get("LOG_LEVEL", "INFO").upper(), format="%(asctime)s %(levelname)-7s %(message)s", datefmt="%H:%M:%S"
+)
 logging.getLogger("httpx").setLevel(logging.WARNING)  # app.llm already logs each AI call
 log = logging.getLogger(__name__)
 
@@ -133,6 +135,7 @@ def analyze(
     # so FastAPI runs it in a worker thread instead of stalling the event loop.
     name = file.filename or "upload"
     content = file.file.read(MAX_UPLOAD_BYTES + 1)
+    log.info("New upload received: %r (%s)", name, _size(len(content)))
     try:
         if not content:
             raise AnalysisFailed(400, "empty_file", f"{name!r} is empty.", keep_file=False)
@@ -141,6 +144,7 @@ def analyze(
             raise AnalysisFailed(413, "file_too_large", f"{name!r} is larger than {limit} MB.", keep_file=False)
         result = _run_pipeline(name, content, password, model)
     except AnalysisFailed as f:
+        log.warning("Couldn't analyse %r (kept in the Failed list so it can be retried): %s", name, f.message)
         failure_id = None
         try:
             failure_id = db.save_failure(
@@ -184,8 +188,10 @@ def _run_pipeline(name: str, content: bytes, password: str | None, model: str | 
         return analyze_file(tmp_path, source_file=name, password=password or None, model=model)
     # Asking for a password is the normal flow for a locked PDF, not a failure: not recorded.
     except PasswordRequiredError:
+        log.info("  %r is password protected; asking the user for the password", name)
         raise _error(422, "password_required", f"{name!r} is password protected. Enter its password to continue.") from None
     except IncorrectPasswordError:
+        log.info("  The password given doesn't open %r; asking the user to try again", name)
         raise _error(422, "incorrect_password", f"That password didn't open {name!r}. Check it and try again.") from None
     except (ExtractionError, NormalizationError) as e:
         # The parsers name the file they read, which is our temporary copy; the message already names the upload.
@@ -202,9 +208,15 @@ def _run_pipeline(name: str, content: bytes, password: str | None, model: str | 
         tmp_path.unlink(missing_ok=True)
 
 
+def _size(n: int) -> str:
+    return f"{n / 1024 / 1024:.1f} MB" if n >= 1024 * 1024 else f"{max(n // 1024, 1)} KB"
+
+
 def _save(result: AnalyzeResponse, content: bytes) -> AnalyzeResponse:
     try:
-        return db.save_analysis(result, content)
+        saved = db.save_analysis(result, content)
+        log.info("Saved %r to history", result.source_file)
+        return saved
     except Exception:
         # The analysis worked; don't throw it away because the history couldn't be written.
         log.exception("couldn't save analysis of %s to history", result.source_file)
@@ -287,9 +299,11 @@ def retry_failure(
         raise _error(404, "file_not_found", "No file was kept for this failure, so it can't be retried.")
     _check_model(model)
     content, name = kept
+    log.info("Retrying failed upload #%d: %r", failure_id, name)
     try:
         result = _run_pipeline(name, content, password, model)
     except AnalysisFailed as f:
+        log.warning("Retry of %r failed again: %s", name, f.message)
         try:
             db.record_retry_failure(failure_id, **f.record(password))
         except Exception:
@@ -298,6 +312,7 @@ def retry_failure(
     saved = _save(result, content)
     if saved.analysis_id is not None:
         db.resolve_failure(failure_id, saved.analysis_id)
+        log.info("Retry worked; failed upload #%d is marked as fixed", failure_id)
     return saved
 
 

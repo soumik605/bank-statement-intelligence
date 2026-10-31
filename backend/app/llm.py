@@ -100,6 +100,18 @@ def missing_key_message(model: Model) -> str:
     return f"{model.label} has no API key: set {names} in .env (see .env.example)"
 
 
+def _status_in_words(status: int) -> str:
+    if status in (401, 403):
+        return "the API key was rejected"
+    if status == 404:
+        return "the AI model wasn't found"
+    if status == 429:
+        return "too many requests; the AI provider asked us to slow down"
+    if status >= 500:
+        return "the AI service had a problem on its side"
+    return "the AI service refused the request"
+
+
 _THINKING = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 
 
@@ -117,10 +129,10 @@ def chat(
     chosen = resolve_model(model)
     key = api_key(chosen)
     if not key:
-        log.warning("AI call skipped [%s]: %s", purpose, missing_key_message(chosen))
+        log.warning("  Couldn't ask the AI to %s: no API key is set for %s", purpose, chosen.label)
         raise LLMError(missing_key_message(chosen))
     base_url = os.environ.get("LLM_BASE_URL", DEFAULT_BASE_URL).rstrip("/")
-    log.info("AI call -> %s [%s]", chosen.id, purpose)
+    log.info("  Asking the AI (%s) to %s…", chosen.label, purpose)
     started = time.monotonic()
     try:
         response = httpx.post(
@@ -140,15 +152,24 @@ def chat(
         body = response.json()
         content = body["choices"][0]["message"]["content"] or ""
     except httpx.HTTPStatusError as e:
-        log.warning("AI call failed [%s] after %.1fs: HTTP %s", purpose, time.monotonic() - started, e.response.status_code)
+        log.warning(
+            "  The AI didn't answer after %.1f s: %s (HTTP %s)",
+            time.monotonic() - started, _status_in_words(e.response.status_code), e.response.status_code,
+        )
         raise LLMError(f"LLM request failed: HTTP {e.response.status_code}: {e.response.text[:300]}") from None
+    except httpx.TimeoutException:
+        log.warning("  The AI didn't answer within %d s, so we stopped waiting", timeout)
+        raise LLMError(f"LLM request timed out after {timeout}s") from None
+    except httpx.ConnectError as e:
+        log.warning("  Couldn't connect to the AI service at %s (no internet, or the address is wrong)", base_url)
+        raise LLMError(f"LLM request failed: {e!r}") from None
     except (httpx.HTTPError, KeyError, IndexError, ValueError) as e:
-        log.warning("AI call failed [%s] after %.1fs: %r", purpose, time.monotonic() - started, e)
+        log.warning("  Couldn't get an answer from the AI after %.1f s: %r", time.monotonic() - started, e)
         raise LLMError(f"LLM request failed: {e!r}") from None
     usage = body.get("usage") or {}
     log.info(
-        "AI reply <- %s [%s] in %.1fs, tokens in/out: %s/%s",
-        chosen.id, purpose, time.monotonic() - started, usage.get("prompt_tokens", "?"), usage.get("completion_tokens", "?"),
+        "  The AI answered in %.1f s (%s tokens used)",
+        time.monotonic() - started, usage.get("total_tokens", "?"),
     )
     # Reasoning normally arrives in a separate field; strip it if a model inlines it.
     return _THINKING.sub("", content).strip()

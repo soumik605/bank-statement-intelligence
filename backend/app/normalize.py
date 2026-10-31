@@ -79,16 +79,30 @@ def map_columns(columns: list[str]) -> dict[str, str]:
 
     has_amounts = {"debit", "credit"} <= mapping.keys() or "amount" in mapping
     if "date" not in mapping or "description" not in mapping or not has_amounts:
-        missing = [f for f in ("date", "description") if f not in mapping]
+        missing = [f"the {f}" for f in ("date", "description") if f not in mapping]
         if not has_amounts:
-            missing.append("amount (or a debit and a credit column)")
-        log.warning("Column mapping failed: no column found for %s. Read the columns as: %s", ", ".join(missing), read_as)
+            missing.append("the amount (one Amount column, or separate money-in and money-out columns)")
+        log.warning(
+            "  Couldn't tell which column holds %s. The headings were: %s",
+            " or ".join(missing), " | ".join(columns),
+        )
         raise NormalizationError(
             "can't map columns: need a date, a description, and either separate debit and credit "
             f"columns or one amount column. Read the columns as: {read_as}"
         )
-    log.info("Columns mapped by header words (no AI): %s", read_as)
+    used = set(mapping.values())
+    log.info(
+        "  Matched the columns by their headings (no AI needed): %s%s",
+        ", ".join(f"{_FIELD_IN_WORDS[f]} = {c!r}" for f, c in mapping.items()),
+        f"; not needed: {', '.join(repr(c) for c in columns if c not in used)}" if set(columns) - used else "",
+    )
     return mapping
+
+
+_FIELD_IN_WORDS = {
+    "date": "date", "description": "description", "debit": "money out", "credit": "money in",
+    "amount": "amount", "marker": "in/out marker", "balance": "balance",
+}
 
 
 def _usable_marker(rows: list[RawRow], column: str) -> bool:
@@ -250,7 +264,7 @@ def normalize(rows: list[RawRow], header_text: str = "") -> NormalizedStatement:
     typed_by_sign: list[Decimal] = []
     month_first = _is_month_first([row[cols["date"]] for row in rows])
     if month_first:
-        log.info("Reading dates month-first: a date in %r only makes sense as MM/DD", cols["date"])
+        log.info("  Dates are written month first (US style, e.g. 01/18/2023), so reading them that way")
 
     for n, row in enumerate(rows, start=1):
         date_text = _TIME.sub("", " ".join(row[cols["date"]].split()))

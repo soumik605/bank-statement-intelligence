@@ -125,7 +125,7 @@ def summarize(
     model: str | None = None,
 ) -> Summary:
     source = build_summary_input(statement, analytics, transactions)
-    purpose = "write the plain-English summary"  # updated before a retry; read by the lambda at call time
+    purpose = "write a short summary from the totals worked out above"  # updated before a retry; read by the lambda at call time
     complete = complete or (
         lambda messages: llm.chat(messages, model=model, temperature=0, max_tokens=400, purpose=purpose)
     )
@@ -137,20 +137,27 @@ def summarize(
     bad: list[str] = []
     for attempt in range(2):
         if attempt:
-            purpose = f"rewrite the summary: attempt {attempt} used numbers not in the input ({', '.join(bad)})"
-        log.info("Asking the AI to %s", purpose)
+            purpose = f"rewrite the summary without the numbers it made up ({', '.join(bad)})"
         try:
             text = _clean(complete(messages))
         except Exception as e:  # network, auth, rate limit
-            log.warning("LLM summary failed, using template: %s", e)
+            # llm.chat has already logged why in words; anything else is worth showing as is.
+            log.warning(
+                "  The AI couldn't write the summary%s, so using the built-in summary",
+                "" if isinstance(e, llm.LLMError) else f" ({e})",
+            )
             return Summary(template_summary(source), "template")
         if not text:
-            log.warning("LLM summary came back empty; using the template")
+            log.warning("  The AI's summary came back empty, so using the built-in summary")
             break
         bad = unsupported_numbers(text, source)
         if not bad:
+            log.info("  Checked every number in the AI's summary against the real totals: all correct")
             return Summary(text, "llm")
-        log.warning("LLM summary attempt %d used numbers not in the input: %s", attempt + 1, bad)
+        log.warning(
+            "  The AI's summary has numbers that aren't in the statement (%s); AI summaries are never "
+            "allowed to invent figures", ", ".join(bad),
+        )
         messages += [
             {"role": "assistant", "content": text},
             {"role": "user", "content": (
@@ -159,7 +166,7 @@ def summarize(
             )},
         ]
     if bad:
-        log.warning("LLM summary still had made-up numbers after a retry; using the template")
+        log.warning("  The AI's rewrite still had made-up numbers, so using the built-in summary instead")
     return Summary(template_summary(source), "template", bad)
 
 

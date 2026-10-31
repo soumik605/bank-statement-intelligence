@@ -23,7 +23,7 @@ import bisect
 import csv
 import logging
 import re
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -42,6 +42,27 @@ RawRow = dict[str, str]
 
 class ExtractionError(ValueError):
     pass
+
+
+class HeaderNotFoundError(ExtractionError):
+    """No line reads like the table's column headings. The AI layout fallback
+    (app.layout_ai) may still find it."""
+
+
+@dataclass(frozen=True)
+class LayoutLine:
+    """One line of a statement split into cells, as shown to the AI when the
+    rules can't find the layout (see app.layout_ai). Passing one back as
+    `header` to the extract functions makes it the table's header."""
+    number: int  # CSV: the row's index; PDF: counted across pages
+    cells: tuple[str, ...]
+    xs: tuple[float, ...] | None = None  # PDF only: where each cell starts on the page
+
+
+def _joined(cells) -> str:
+    """A line's text whatever its cell split, so a header chosen from one
+    reading of a page is found again in another."""
+    return " ".join(" ".join(c.split()) for c in cells if c)
 
 
 class PasswordRequiredError(ExtractionError):
@@ -74,19 +95,22 @@ def open_pdf(path: str | Path, password: str | None = None) -> Iterator[pdfplumb
         yield pdf
 
 
-def extract_rows(path: str | Path, password: str | None = None) -> list[RawRow]:
-    """`password` is used only for protected PDFs; CSVs ignore it."""
+def extract_rows(path: str | Path, password: str | None = None, header: LayoutLine | None = None) -> list[RawRow]:
+    """`password` is used only for protected PDFs; CSVs ignore it. `header`
+    names the header line instead of looking for one (the AI layout fallback)."""
     suffix = Path(path).suffix.lower()
     if suffix == ".csv":
-        log.info("  It's a CSV file (a spreadsheet export)")
-        return extract_csv(path)
+        if header is None:
+            log.info("  It's a CSV file (a spreadsheet export)")
+        return extract_csv(path, header)
     if suffix == ".pdf":
-        log.info("  It's a PDF file")
-        return extract_pdf(path, password=password)
+        if header is None:
+            log.info("  It's a PDF file")
+        return extract_pdf(path, password=password, header=header)
     raise ExtractionError(f"unsupported file type: {Path(path).name}")
 
 
-def extract_header_text(path: str | Path, password: str | None = None) -> str:
+def extract_header_text(path: str | Path, password: str | None = None, header: LayoutLine | None = None) -> str:
     """The text above the transaction table (bank name, account details,
     period), one line per line, for the next stage to pull details out of.
     Empty when the table starts on the first line."""
@@ -95,8 +119,8 @@ def extract_header_text(path: str | Path, password: str | None = None) -> str:
     if suffix == ".csv":
         lines = []
         with path.open(newline="", encoding=_csv_encoding(path)) as f:
-            for row in csv.reader(f):
-                if _is_header(row):
+            for i, row in enumerate(csv.reader(f)):
+                if (i == header.number) if header else _is_header(row):
                     break
                 # "Account Number,XXXX 7710" reads the same as the PDF's "Account Number: XXXX 7710".
                 lines.append(": ".join(c.strip() for c in row if c.strip()))
@@ -106,7 +130,8 @@ def extract_header_text(path: str | Path, password: str | None = None) -> str:
         with open_pdf(path, password) as pdf:
             for page in pdf.pages:
                 for words in _merge_stacked_headers(_lines(page.extract_words())):
-                    if _is_header([c.text for c in _split_on_gaps(words)]):
+                    texts = [c.text for c in _split_on_gaps(words)]
+                    if (_joined(texts) == _joined(header.cells)) if header else _is_header(texts):
                         return "\n".join(lines)
                     # Wide gaps become 3 spaces, which parse_header treats as a field break.
                     lines.append("   ".join(c.text for c in _split_on_gaps(words)))
@@ -116,17 +141,23 @@ def extract_header_text(path: str | Path, password: str | None = None) -> str:
 
 # --- CSV ----------------------------------------------------------------------
 
-def extract_csv(path: str | Path) -> list[RawRow]:
+def extract_csv(path: str | Path, header: LayoutLine | None = None) -> list[RawRow]:
     path = Path(path)
     encoding = _csv_encoding(path)
-    with path.open(newline="", encoding=encoding) as f:
-        header_at = next((i for i, row in enumerate(csv.reader(f)) if _is_header(row)), None)
+    if header is not None:
+        header_at = header.number
+    else:
+        with path.open(newline="", encoding=encoding) as f:
+            header_at = next((i for i, row in enumerate(csv.reader(f)) if _is_header(row)), None)
     if header_at is None:
-        raise ExtractionError(f"{path.name}: no header row found")
+        log.warning(_NO_HEADER_LOG)
+        raise HeaderNotFoundError(f"{path.name}: no header row found")
     # dtype=str and keep_default_na=False: no type guessing, so "0000412..." keeps its
     # leading zeros and an empty cell stays "" instead of becoming NaN.
     df = pd.read_csv(path, skiprows=header_at, dtype=str, keep_default_na=False, encoding=encoding)
-    return _rows_from_grid([list(df.columns), *df.itertuples(index=False, name=None)], path.name)
+    # The grid starts at the header row, so a chosen header is simply the first row.
+    is_header = (lambda cells: True) if header is not None else _is_header
+    return _rows_from_grid([list(df.columns), *df.itertuples(index=False, name=None)], path.name, is_header)
 
 
 def _csv_encoding(path: Path) -> str:
@@ -140,10 +171,14 @@ def _csv_encoding(path: Path) -> str:
 # --- PDF ----------------------------------------------------------------------
 
 def extract_pdf(
-    path: str | Path, mode: Literal["auto", "tables", "text"] = "auto", password: str | None = None
+    path: str | Path,
+    mode: Literal["auto", "tables", "text"] = "auto",
+    password: str | None = None,
+    header: LayoutLine | None = None,
 ) -> list[RawRow]:
     """Read ruled tables with pdfplumber; fall back to positioned text lines when
-    no table with a recognisable header is found."""
+    no table with a recognisable header is found. A given `header` is found by
+    its text in the positioned lines, the same reading layout_lines showed."""
     path = Path(path)
     with open_pdf(path, password) as pdf:
         if not any(page.chars for page in pdf.pages):
@@ -152,6 +187,12 @@ def extract_pdf(
                 f"{path.name} has no text in it; it looks like a scanned image. Scanned statements "
                 "aren't supported yet: download the statement from your bank as a PDF or CSV instead"
             )
+        if header is not None:
+            wanted = _joined(header.cells)
+            is_header = lambda cells: _joined(cells) == wanted  # noqa: E731
+            rows = _rows_from_grid(_text_grid(pdf, is_header), path.name, is_header)
+            log.info("  Read %d lines under that header (%d pages)", len(rows), len(pdf.pages))
+            return rows
         if mode in ("auto", "tables"):
             grid = [row for page in pdf.pages for table in page.extract_tables() for row in table]
             if mode == "tables":
@@ -195,7 +236,7 @@ class _Cell:
     x1: float
 
 
-def _text_grid(pdf: pdfplumber.PDF) -> list[list[str]]:
+def _text_grid(pdf: pdfplumber.PDF, is_header: Callable[[list[str]], bool] | None = None) -> list[list[str]]:
     """Rebuild table rows from words and their positions.
 
     Column spans come from the vertical rules between columns when the page
@@ -207,6 +248,10 @@ def _text_grid(pdf: pdfplumber.PDF) -> list[list[str]]:
     Wrapped narration lines are joined here, where positions are known: if the
     line above runs right up to the column's edge, the text was broken
     mid-word ("…-FO" / "OD ORDER") and is joined without a space.
+
+    `is_header` picks out the header line when the caller already knows it
+    (the AI layout fallback); otherwise the first line that reads like one is
+    the header.
     """
     grid: list[list[str]] = []
     columns: list[_Cell] | None = None
@@ -214,32 +259,22 @@ def _text_grid(pdf: pdfplumber.PDF) -> list[list[str]]:
     bounded = False  # columns come from drawn rules, so their right edges are exact
     for page in pdf.pages:
         last_line: dict[int, dict] = {}  # column -> last word of the previous data line; text never wraps across pages
-        lines = _merge_stacked_headers(_lines(page.extract_words()))
-        bounds = _column_lines(page)
-        cells, ruled = [], []
-        for words in lines:
-            # Trust the drawn rules only where they split a line at least as finely as
-            # the gaps do. Some tables rule off only some columns, and some rules
-            # belong to a box beside the table, not to the table at all.
-            by_gaps = _split_on_gaps(words)
-            by_rules = _split_on_lines(words, bounds) if bounds else []
-            use_rules = bool(by_rules) and len(by_rules) >= len(by_gaps)
-            cells.append(by_rules if use_rules else by_gaps)
-            ruled.append(use_rules)
+        lines, cells, ruled = _page_lines(page)
         texts_per_line = [[c.text for c in line] for line in cells]
-        # Only the statement's own header starts the table. Another header-like line
-        # (a summary block's "Opening Balance  Dr Count  Cr Count") is just a row.
-        is_header = [
-            _is_header(t) and (main_header is None or t == main_header) for t in texts_per_line
-        ]
-        if main_header is None and True in is_header:
-            main_header = texts_per_line[is_header.index(True)]
+        if is_header is not None:
+            headers = [is_header(t) for t in texts_per_line]
+        else:
+            # Only the statement's own header starts the table. Another header-like line
+            # (a summary block's "Opening Balance  Dr Count  Cr Count") is just a row.
+            headers = [_is_header(t) and (main_header is None or t == main_header) for t in texts_per_line]
+            if main_header is None and True in headers:
+                main_header = texts_per_line[headers.index(True)]
         # On a page that repeats the header, everything above it is page furniture
         # (bank name, account details printed on every page), not table rows. Pages
         # that don't repeat it keep everything; furniture there is skipped later
         # because it has no transaction date.
-        start = is_header.index(True) if True in is_header else 0
-        for words, line_cells, line_ruled, header in zip(lines[start:], cells[start:], ruled[start:], is_header[start:]):
+        start = headers.index(True) if True in headers else 0
+        for words, line_cells, line_ruled, header in zip(lines[start:], cells[start:], ruled[start:], headers[start:]):
             if header:
                 columns, bounded, last_line = line_cells, line_ruled, {}  # positions re-read on every page
                 grid.append([c.text for c in line_cells])
@@ -258,6 +293,49 @@ def _text_grid(pdf: pdfplumber.PDF) -> list[list[str]]:
             grid.append(texts)
             last_line = {i: part[-1] for i, part in enumerate(parts) if part}
     return grid
+
+
+def _page_lines(page: pdfplumber.page.Page) -> tuple[list[list[dict]], list[list[_Cell]], list[bool]]:
+    """A page's lines as words, the same lines as cells, and whether each line
+    was split on drawn rules (True) or on gaps between words (False)."""
+    lines = _merge_stacked_headers(_lines(page.extract_words()))
+    bounds = _column_lines(page)
+    cells, ruled = [], []
+    for words in lines:
+        # Trust the drawn rules only where they split a line at least as finely as
+        # the gaps do. Some tables rule off only some columns, and some rules
+        # belong to a box beside the table, not to the table at all.
+        by_gaps = _split_on_gaps(words)
+        by_rules = _split_on_lines(words, bounds) if bounds else []
+        use_rules = bool(by_rules) and len(by_rules) >= len(by_gaps)
+        cells.append(by_rules if use_rules else by_gaps)
+        ruled.append(use_rules)
+    return lines, cells, ruled
+
+
+def layout_lines(path: str | Path, password: str | None = None, max_lines: int = 300) -> list[LayoutLine]:
+    """The first lines of a statement as cells, for the AI layout fallback.
+    PDF lines are split exactly as the text reader splits them, so a header
+    chosen from these is found again by extract_rows(..., header=line)."""
+    path = Path(path)
+    suffix = path.suffix.lower()
+    out: list[LayoutLine] = []
+    if suffix == ".csv":
+        with path.open(newline="", encoding=_csv_encoding(path)) as f:
+            for i, row in enumerate(csv.reader(f)):
+                if i >= max_lines:
+                    break
+                out.append(LayoutLine(i, tuple(_clean(c) for c in row)))
+        return out
+    if suffix == ".pdf":
+        with open_pdf(path, password) as pdf:
+            for page in pdf.pages:
+                for line in _page_lines(page)[1]:
+                    if len(out) >= max_lines:
+                        return out
+                    out.append(LayoutLine(len(out), tuple(c.text for c in line), tuple(c.x0 for c in line)))
+        return out
+    raise ExtractionError(f"unsupported file type: {path.name}")
 
 
 def _runs_to_edge(last: dict | None, next_words: list[dict], column: _Cell) -> bool:
@@ -420,14 +498,22 @@ def _column_names(cells: list[str]) -> list[str]:
     return names
 
 
-def _rows_from_grid(grid: list, source: str) -> list[RawRow]:
+_NO_HEADER_LOG = (
+    "  Couldn't find the table's column headings: no line has at least 3 headings (one of them a date) "
+    "without any numbers in it"
+)
+
+
+def _rows_from_grid(
+    grid: list, source: str, is_header: Callable[[list[str]], bool] = _is_header
+) -> list[RawRow]:
     header: list[str] | None = None
     names: list[str] = []
     rows: list[RawRow] = []
     for raw in grid:
         cells = [_clean(c) for c in raw]
         if header is None:
-            if _is_header(cells):
+            if is_header(cells):
                 header, names = cells, _column_names(cells)
             continue  # text above the table
         if cells == header or not any(cells):
@@ -440,10 +526,7 @@ def _rows_from_grid(grid: list, source: str) -> list[RawRow]:
             continue
         rows.append(dict(zip(names, cells)))
     if header is None:
-        log.warning(
-            "  Couldn't find the table's column headings: no line has at least 3 headings (one of them a date) "
-            "without any numbers in it"
-        )
-        raise ExtractionError(f"{source}: no header row found")
+        log.warning(_NO_HEADER_LOG)
+        raise HeaderNotFoundError(f"{source}: no header row found")
     log.info("  Found the column headings: %s", " | ".join(c for c in header if c))
     return rows

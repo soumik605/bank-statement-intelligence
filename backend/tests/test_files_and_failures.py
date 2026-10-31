@@ -76,7 +76,7 @@ def test_parse_failure_is_recorded_with_file_and_traceback():
     failure = client.get(f"/failures/{detail['failure_id']}").json()
     assert failure["error_code"] == "could_not_parse"
     assert failure["message"] == detail["message"]
-    assert failure["exception_type"] == "ExtractionError"
+    assert failure["exception_type"] == "HeaderNotFoundError"
     assert "no header row found" in failure["traceback"]
     assert failure["file_kept"] and failure["file_size"] == len(content)
     assert client.get(f"/failures/{failure['id']}/file").content == content

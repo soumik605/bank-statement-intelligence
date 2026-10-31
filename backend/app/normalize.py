@@ -38,6 +38,11 @@ class NormalizationError(ValueError):
     pass
 
 
+class ColumnMappingError(NormalizationError):
+    """The header's column names don't say which column is which. The AI
+    layout fallback (app.layout_ai) may still work it out."""
+
+
 @dataclass
 class SkippedRow:
     row: RawRow
@@ -86,7 +91,7 @@ def map_columns(columns: list[str]) -> dict[str, str]:
             "  Couldn't tell which column holds %s. The headings were: %s",
             " or ".join(missing), " | ".join(columns),
         )
-        raise NormalizationError(
+        raise ColumnMappingError(
             "can't map columns: need a date, a description, and either separate debit and credit "
             f"columns or one amount column. Read the columns as: {read_as}"
         )
@@ -253,16 +258,26 @@ def parse_header(text: str) -> dict:
 
 # --- Rows ---------------------------------------------------------------------
 
-def normalize(rows: list[RawRow], header_text: str = "") -> NormalizedStatement:
+def normalize(
+    rows: list[RawRow],
+    header_text: str = "",
+    columns: dict[str, str] | None = None,
+    month_first: bool | None = None,
+) -> NormalizedStatement:
+    """`columns` (schema field -> column name, as map_columns returns) and
+    `month_first` come from the AI layout fallback; by default both are
+    worked out from the rows themselves."""
     if not rows:
         raise NormalizationError("no rows to normalize")
-    cols = map_columns(list(rows[0]))
-    if "marker" in cols and column_role(cols["marker"]) == ("marker", 1) and not _usable_marker(rows, cols["marker"]):
+    cols = dict(columns) if columns else map_columns(list(rows[0]))
+    weak_marker = columns is not None or column_role(cols.get("marker", "")) == ("marker", 1)
+    if "marker" in cols and weak_marker and not _usable_marker(rows, cols["marker"]):
         del cols["marker"]  # e.g. a "Type" column holding UPI/NEFT, not Dr/Cr
     transactions: list[Transaction] = []
     skipped: list[SkippedRow] = []
     typed_by_sign: list[Decimal] = []
-    month_first = _is_month_first([row[cols["date"]] for row in rows])
+    if month_first is None:
+        month_first = _is_month_first([row[cols["date"]] for row in rows])
     if month_first:
         log.info("  Dates are written month first (US style, e.g. 01/18/2023), so reading them that way")
 

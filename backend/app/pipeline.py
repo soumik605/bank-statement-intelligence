@@ -1,5 +1,6 @@
 """The whole pipeline for one statement file, in order:
-extract -> normalize -> categorize (rules, then LLM) -> unusual -> analytics -> AI summary.
+extract -> normalize (rules, then the AI layout fallback if they can't read the
+layout) -> categorize (rules, then LLM) -> unusual -> analytics -> AI summary.
 
 Each step logs what it found in plain English, so the log reads as a story of
 the upload for someone who doesn't know the code.
@@ -12,8 +13,10 @@ from pathlib import Path
 from app import llm
 from app.analytics import compute_analytics
 from app.categorize import categorize
+from app.extract import HeaderNotFoundError
 from app.formatting import format_inr, plural
-from app.normalize import load_statement
+from app.layout_ai import load_with_ai_layout
+from app.normalize import ColumnMappingError, load_statement
 from app.schema import AISummary, AnalyzeResponse, SkippedRowOut
 from app.summary import summarize
 from app.unusual import detect_unusual
@@ -37,7 +40,11 @@ def analyze_file(
     log.info("━━ Analysing %r with the AI model %s", name, chosen.label)
 
     log.info("Step 1 of 5: reading the statement%s", " (opening it with the password given)" if password else "")
-    statement = load_statement(path, password)
+    try:
+        statement = load_statement(path, password)
+    except (HeaderNotFoundError, ColumnMappingError) as e:
+        log.info("  The usual rules couldn't work out this statement's layout, so asking the AI to")
+        statement = load_with_ai_layout(path, password, rules_error=e, model=chosen.key)
     txns = statement.transactions
     log.info(
         "  Found %s, %s to %s", plural(len(txns), "transaction"),

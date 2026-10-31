@@ -373,3 +373,4 @@ def delete_failure(failure_id: int) -> bool:
     return True
 
 
+

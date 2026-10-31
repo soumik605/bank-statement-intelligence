@@ -200,7 +200,9 @@ SYSTEM_PROMPT = (
 )
 
 
-def categorize_with_llm(transactions: list[Transaction], complete: Complete | None = None) -> list[Transaction]:
+def categorize_with_llm(
+    transactions: list[Transaction], complete: Complete | None = None, model: str | None = None
+) -> list[Transaction]:
     """Categorize every transaction that still has no category, in one LLM call.
 
     The reply is never trusted: anything missing, unparseable, not in the
@@ -212,7 +214,7 @@ def categorize_with_llm(transactions: list[Transaction], complete: Complete | No
     if complete is None:
         # Roughly 20 tokens per {"id": .., "category": ".."} entry, plus slack.
         max_tokens = 64 + 24 * len(pending)
-        complete = lambda messages: llm.chat(messages, temperature=0, max_tokens=max_tokens)  # noqa: E731
+        complete = lambda messages: llm.chat(messages, model=model, temperature=0, max_tokens=max_tokens)  # noqa: E731
 
     batch = [
         {"id": i, "description": t.description, "amount": t.amount, "type": t.type}
@@ -281,6 +283,8 @@ def parse_llm_reply(text: str, valid_ids: set[int]) -> dict[int, Category]:
     return chosen
 
 
-def categorize(transactions: list[Transaction], complete: Complete | None = None) -> list[Transaction]:
-    """Rules first; one LLM call for whatever they leave."""
-    return categorize_with_llm(categorize_by_rules(transactions), complete)
+def categorize(
+    transactions: list[Transaction], complete: Complete | None = None, model: str | None = None
+) -> list[Transaction]:
+    """Rules first; one LLM call (with `model`, a key from llm.MODELS) for whatever they leave."""
+    return categorize_with_llm(categorize_by_rules(transactions), complete, model)

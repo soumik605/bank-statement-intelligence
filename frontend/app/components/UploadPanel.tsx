@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
+import type { ModelOption } from "@/lib/types";
 import { UploadIcon } from "./icons";
+import ModelPicker from "./ModelPicker";
 
 export const SAMPLES = [
   { name: "meridian_q1-2026.pdf", label: "Meridian Bank · PDF, 3 months" },
@@ -23,11 +25,17 @@ export default function UploadPanel({
   onSample,
   error,
   failureId,
+  models,
+  model,
+  onModelChange,
 }: {
   onAnalyze: (file: File) => void;
   onSample: (name: string) => void;
   error: string | null;
   failureId: number | null; // the failed upload was kept for review under this id
+  models: ModelOption[];
+  model: string | null;
+  onModelChange: (key: string) => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [pickError, setPickError] = useState<string | null>(null);
@@ -97,6 +105,8 @@ export default function UploadPanel({
           )}
         </div>
       )}
+
+      <ModelPicker models={models} value={model} onChange={onModelChange} />
 
       <button
         type="button"

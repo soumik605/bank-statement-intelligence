@@ -101,3 +101,13 @@ def test_unknown_id():
     response = client.get("/history/999")
     assert response.status_code == 404
     assert response.json()["detail"]["error"] == "analysis_not_found"
+
+
+def test_concurrent_first_requests_on_a_new_database():
+    # The page asks for history and failures at the same moment. On a brand-new
+    # database that used to fail with "database is locked".
+    from concurrent.futures import ThreadPoolExecutor
+    assert not db.DB_PATH.exists()
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        results = list(pool.map(lambda i: db.list_failures() if i % 2 else db.list_analyses(), range(24)))
+    assert all(r.total == 0 for r in results)

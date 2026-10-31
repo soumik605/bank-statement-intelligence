@@ -161,6 +161,19 @@
           },
           "title": "Skipped Rows",
           "type": "array"
+        },
+        "ai_model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The LLM used for AI categories and the summary; null for analyses saved before this was kept",
+          "title": "Ai Model"
         }
       },
       "required": [

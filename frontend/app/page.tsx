@@ -1,14 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { analyze, ApiError, fetchSample, getAnalysis, retryFailure } from "@/lib/api";
-import type { AnalyzeResponse, FailureItem } from "@/lib/types";
+import { useEffect, useRef, useState } from "react";
+import { analyze, ApiError, fetchSample, getAnalysis, listModels, retryFailure } from "@/lib/api";
+import type { AnalyzeResponse, FailureItem, ModelOption } from "@/lib/types";
 import FailuresList from "./components/FailuresList";
 import HistoryList from "./components/HistoryList";
 import LoadingState from "./components/LoadingState";
 import PasswordPrompt from "./components/PasswordPrompt";
 import Results from "./components/Results";
 import UploadPanel from "./components/UploadPanel";
+
+const MODEL_KEY = "bsi.model";
 
 type State =
   | { status: "idle"; error: string | null; failureId?: number | null }
@@ -27,6 +29,36 @@ type State =
 export default function Home() {
   const [state, setState] = useState<State>({ status: "idle", error: null });
   const controller = useRef<AbortController | null>(null);
+  const [models, setModels] = useState<ModelOption[]>([]);
+  const [model, setModel] = useState<string | null>(null);
+
+  useEffect(() => {
+    listModels().then(
+      (list) => {
+        setModels(list.models);
+        // The viewer's last choice, if it's still offered; otherwise the server's default.
+        let saved: string | null = null;
+        try {
+          saved = window.localStorage.getItem(MODEL_KEY);
+        } catch {
+          // storage unavailable (private window, blocked); use the default
+        }
+        // A model without an API key is never picked for you.
+        const usable = (key: string | null) => list.models.some((m) => m.key === key && m.available);
+        setModel(usable(saved) ? saved : usable(list.default) ? list.default : (list.models.find((m) => m.available)?.key ?? list.default));
+      },
+      () => {}, // no list: the server's default model is used, and errors show on upload
+    );
+  }, []);
+
+  function chooseModel(key: string) {
+    setModel(key);
+    try {
+      window.localStorage.setItem(MODEL_KEY, key);
+    } catch {
+      // not remembered; it still applies to this visit
+    }
+  }
 
   async function run(
     fileName: string,
@@ -71,7 +103,7 @@ export default function Home() {
       fileName,
       async (signal) => {
         file = await getFile(signal);
-        return analyze(file, signal, password);
+        return analyze(file, signal, password, model ?? undefined);
       },
       {
         onError: (e) => {
@@ -83,7 +115,7 @@ export default function Home() {
   }
 
   function retry(item: FailureItem, password?: string, attempt = 0) {
-    run(item.source_file, (signal) => retryFailure(item.id, signal, password), {
+    run(item.source_file, (signal) => retryFailure(item.id, signal, password, model ?? undefined), {
       onError: (e) => {
         if (askForPassword(e, item.source_file, attempt, (pw, n) => retry(item, pw, n))) return true;
         setState({
@@ -111,7 +143,11 @@ export default function Home() {
       </header>
 
       {state.status === "done" ? (
-        <Results result={state.result} onReset={() => setState({ status: "idle", error: null })} />
+        <Results
+          result={state.result}
+          models={models}
+          onReset={() => setState({ status: "idle", error: null })}
+        />
       ) : (
         <div className="mx-auto w-full max-w-xl rounded-xl border border-border bg-surface p-6 sm:p-8">
           {state.status === "loading" && (
@@ -131,6 +167,9 @@ export default function Home() {
             <UploadPanel
               error={state.error}
               failureId={state.failureId ?? null}
+              models={models}
+              model={model}
+              onModelChange={chooseModel}
               onAnalyze={(file) => analyzeFile(file.name, async () => file)}
               onSample={(name) => analyzeFile(name, (signal) => fetchSample(name, signal))}
             />

@@ -60,6 +60,7 @@ export interface AnalyzeResponse {
   unusual: Transaction[];
   ai_summary: { text: string; source: "llm" | "template"; unsupported_numbers: string[] };
   skipped_rows: { row: Record<string, string>; reason: string }[];
+  ai_model: string | null; // the LLM's model id; null for analyses saved before this was kept
 }
 
 export interface HistoryItem {
@@ -106,4 +107,17 @@ export interface FailureItem {
 export interface FailurePage {
   items: FailureItem[];
   total: number;
+}
+
+export interface ModelOption {
+  key: string; // send as `model`
+  id: string; // the provider's model id
+  label: string;
+  note: string;
+  available: boolean; // an API key is configured for it
+}
+
+export interface ModelList {
+  default: string;
+  models: ModelOption[];
 }

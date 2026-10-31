@@ -1,4 +1,4 @@
-import type { AnalyzeResponse, FailurePage, HistoryPage } from "./types";
+import type { AnalyzeResponse, FailurePage, HistoryPage, ModelList } from "./types";
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -44,10 +44,16 @@ async function request(path: string, init?: RequestInit): Promise<Response> {
 }
 
 // `password` is only for protected PDFs; it's sent once to open the file and never stored.
-export async function analyze(file: File, signal?: AbortSignal, password?: string): Promise<AnalyzeResponse> {
+export async function analyze(
+  file: File,
+  signal?: AbortSignal,
+  password?: string,
+  model?: string,
+): Promise<AnalyzeResponse> {
   const form = new FormData();
   form.append("file", file);
   if (password) form.append("password", password);
+  if (model) form.append("model", model);
   const response = await request("/analyze", { method: "POST", body: form, signal });
   return response.json();
 }
@@ -96,9 +102,21 @@ export async function deleteFailure(id: number): Promise<void> {
 
 // Run the analysis again on a failed upload's kept file. Success is saved to
 // history and marks the failure resolved; another failure updates the same record.
-export async function retryFailure(failureId: number, signal?: AbortSignal, password?: string): Promise<AnalyzeResponse> {
+export async function retryFailure(
+  failureId: number,
+  signal?: AbortSignal,
+  password?: string,
+  model?: string,
+): Promise<AnalyzeResponse> {
   const form = new FormData();
   if (password) form.append("password", password);
+  if (model) form.append("model", model);
   const response = await request(`/failures/${failureId}/retry`, { method: "POST", body: form, signal });
+  return response.json();
+}
+
+// The AI models the backend allows, for categorizing and the summary.
+export async function listModels(): Promise<ModelList> {
+  const response = await request("/models");
   return response.json();
 }

@@ -3,6 +3,7 @@ extract -> normalize -> categorize (rules, then LLM) -> unusual -> analytics -> 
 """
 from pathlib import Path
 
+from app import llm
 from app.analytics import compute_analytics
 from app.categorize import categorize
 from app.normalize import load_statement
@@ -11,17 +12,21 @@ from app.summary import summarize
 from app.unusual import detect_unusual
 
 
-def analyze_file(path: str | Path, source_file: str | None = None, password: str | None = None) -> AnalyzeResponse:
+def analyze_file(
+    path: str | Path, source_file: str | None = None, password: str | None = None, model: str | None = None
+) -> AnalyzeResponse:
     """Raises ExtractionError or NormalizationError when the file can't be parsed
     (PasswordRequiredError / IncorrectPasswordError for a locked PDF). LLM
     failures don't raise; those steps fall back on their own.
 
     Opening the file is the first step, so a locked PDF fails in well under a
-    second, before any LLM call."""
+    second, before any LLM call. `model` is a key from llm.MODELS (None: the
+    default); an unknown key raises llm.UnknownModelError before any work."""
+    chosen = llm.resolve_model(model)
     statement = load_statement(path, password)
-    transactions = detect_unusual(categorize(statement.transactions))
+    transactions = detect_unusual(categorize(statement.transactions, model=chosen.key))
     analytics = compute_analytics(transactions)
-    summary = summarize(statement.statement, analytics, transactions)
+    summary = summarize(statement.statement, analytics, transactions, model=chosen.key)
     return AnalyzeResponse(
         source_file=source_file or Path(path).name,
         account=statement.statement,
@@ -30,4 +35,5 @@ def analyze_file(path: str | Path, source_file: str | None = None, password: str
         unusual=[t for t in transactions if t.is_unusual],
         ai_summary=AISummary(text=summary.text, source=summary.source, unsupported_numbers=summary.unsupported_numbers),
         skipped_rows=[SkippedRowOut(row=s.row, reason=s.reason) for s in statement.skipped],
+        ai_model=chosen.id,
     )

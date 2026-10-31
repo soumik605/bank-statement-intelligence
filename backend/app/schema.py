@@ -157,6 +157,9 @@ class AnalyzeResponse(BaseModel):
     skipped_rows: list[SkippedRowOut] = Field(
         default_factory=list, description="Table rows that weren't transactions: totals, opening balance, footers"
     )
+    ai_model: str | None = Field(
+        default=None, description="The LLM used for AI categories and the summary; null for analyses saved before this was kept"
+    )
 
 
 class HistoryItem(BaseModel):
@@ -209,3 +212,16 @@ class FailureItem(BaseModel):
 class FailurePage(BaseModel):
     items: list[FailureItem] = Field(description="Newest first")
     total: int
+
+
+class ModelOption(BaseModel):
+    key: str = Field(description="Send this as `model` to POST /analyze")
+    id: str = Field(description="The provider's model id")
+    label: str
+    note: str
+    available: bool = Field(description="Whether an API key is configured for it")
+
+
+class ModelList(BaseModel):
+    default: str = Field(description="Key of the model used when none is chosen")
+    models: list[ModelOption]

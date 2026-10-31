@@ -39,7 +39,7 @@ def test_analyze_sample(samples, stem):
     body = response.json()
 
     assert set(body) == {"analysis_id", "analyzed_at", "source_file", "account", "transactions", "summary",
-                         "unusual", "ai_summary", "skipped_rows"}
+                         "unusual", "ai_summary", "skipped_rows", "ai_model"}
     assert isinstance(body["analysis_id"], int)
     assert body["source_file"] == path.name
     assert body["account"] == truth["statement"]

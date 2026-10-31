@@ -19,6 +19,7 @@ import datetime as dt
 import hashlib
 import os
 import sqlite3
+import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -88,18 +89,43 @@ CREATE INDEX IF NOT EXISTS failures_failed_at ON failures (failed_at);
 """
 
 
+_prepared: set[Path] = set()
+_prepare_lock = threading.Lock()
+BUSY_TIMEOUT = 30  # seconds a connection waits for another writer instead of failing
+
+
+def _prepare(path: Path) -> None:
+    """Create tables, migrate, and switch on WAL once per database per process.
+    Doing this on every connection made concurrent first requests (the page loads
+    history and failures together) fail with "database is locked": changing the
+    journal mode needs the database to itself and doesn't wait for it."""
+    with _prepare_lock:
+        if path in _prepared and path.exists():
+            return
+        path.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(path, timeout=BUSY_TIMEOUT)
+        try:
+            try:
+                conn.execute("PRAGMA journal_mode = WAL")  # readers don't block the writer
+            except sqlite3.OperationalError:
+                pass  # another process has it open; it set WAL already, and it persists in the file
+            conn.executescript(SCHEMA)
+            _migrate(conn)
+        finally:
+            conn.close()
+        _prepared.add(path)
+
+
 @contextmanager
 def connect() -> Iterator[sqlite3.Connection]:
     """A connection per call: FastAPI runs sync endpoints on worker threads, and
     SQLite connections can't be shared across threads. Commits on success."""
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
+    path = DB_PATH
+    _prepare(path)
+    conn = sqlite3.connect(path, timeout=BUSY_TIMEOUT)
     try:
         conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys = ON")  # off by default in SQLite; needed for the cascade
-        conn.execute("PRAGMA journal_mode = WAL")  # readers don't block the writer
-        conn.executescript(SCHEMA)
-        _migrate(conn)
+        conn.execute("PRAGMA foreign_keys = ON")  # per connection in SQLite; needed for the cascade
         with conn:
             yield conn
     finally:
@@ -342,3 +368,5 @@ def delete_failure(failure_id: int) -> bool:
         conn.execute("DELETE FROM failures WHERE id = ?", (failure_id,))
         _remove_file_if_unused(conn, row["file_sha256"])
     return True
+
+

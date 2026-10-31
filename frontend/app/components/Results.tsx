@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { formatDate, formatDateTime, inr, signedInr } from "@/lib/format";
-import type { AnalyzeResponse, Analytics, StatementInfo, Transaction } from "@/lib/types";
+import type { AnalyzeResponse, Analytics, ModelOption, StatementInfo, Transaction } from "@/lib/types";
 import { CheckIcon, WarningIcon } from "./icons";
 import DocumentPreview from "./DocumentPreview";
 import SpendingChart from "./SpendingChart";
@@ -65,13 +65,13 @@ function Totals({ summary }: { summary: Analytics }) {
   );
 }
 
-function AiSummary({ summary }: { summary: AnalyzeResponse["ai_summary"] }) {
+function AiSummary({ summary, modelLabel }: { summary: AnalyzeResponse["ai_summary"]; modelLabel: string | null }) {
   return (
     <Card title="AI summary">
       <p className="whitespace-pre-line leading-relaxed">{summary.text}</p>
       <p className="mt-4 text-xs text-muted">
         {summary.source === "llm"
-          ? "Written by the AI from the computed figures only; every number in it was checked against them."
+          ? `Written by ${modelLabel ?? "the AI"} from the computed figures only; every number in it was checked against them.`
           : "The AI summary wasn't available or used numbers it shouldn't have, so this one was built from a template."}
       </p>
     </Card>
@@ -186,8 +186,18 @@ function TransactionsTable({ transactions, skipped }: { transactions: Transactio
   );
 }
 
-export default function Results({ result, onReset }: { result: AnalyzeResponse; onReset: () => void }) {
+export default function Results({
+  result,
+  models,
+  onReset,
+}: {
+  result: AnalyzeResponse;
+  models: ModelOption[];
+  onReset: () => void;
+}) {
   const [previewing, setPreviewing] = useState(false);
+  // A friendly name for the model id the result recorded; the raw id if it's no longer offered.
+  const modelLabel = result.ai_model ? (models.find((m) => m.id === result.ai_model)?.label ?? result.ai_model) : null;
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -200,6 +210,7 @@ export default function Results({ result, onReset }: { result: AnalyzeResponse; 
               <>
                 <CheckIcon className="size-3.5 text-good-text" /> Saved to history · analyzed{" "}
                 {formatDateTime(result.analyzed_at)}
+                {modelLabel && <> · AI model: {modelLabel}</>}
               </>
             ) : (
               <>
@@ -236,7 +247,7 @@ export default function Results({ result, onReset }: { result: AnalyzeResponse; 
         <Totals summary={result.summary} />
       </div>
 
-      <AiSummary summary={result.ai_summary} />
+      <AiSummary summary={result.ai_summary} modelLabel={modelLabel} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="Spending by category">

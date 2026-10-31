@@ -4,3 +4,9 @@ data/*.db
 data/*.db-wal
 data/*.db-shm
 data/uploads/
+
+# Build and tool output
+__pycache__/
+.pytest_cache/
+backend/.venv/
+.DS_Store

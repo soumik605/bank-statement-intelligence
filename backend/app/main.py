@@ -14,11 +14,11 @@ from fastapi import FastAPI, File, Form, HTTPException, Query, Response, UploadF
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import db
+from app import db, llm
 from app.extract import ExtractionError, IncorrectPasswordError, PasswordRequiredError
 from app.normalize import NormalizationError
 from app.pipeline import analyze_file
-from app.schema import AnalyzeResponse, FailureItem, FailurePage, HistoryPage
+from app.schema import AnalyzeResponse, FailureItem, FailurePage, HistoryPage, ModelList, ModelOption
 
 log = logging.getLogger(__name__)
 
@@ -63,6 +63,33 @@ def health() -> dict:
     return {"status": "ok"}
 
 
+@app.get("/models", response_model=ModelList)
+def models() -> ModelList:
+    """The AI models a user can choose for categorizing and the summary."""
+    default = llm.default_model()
+    options = list(llm.MODELS.values())
+    if default.key not in llm.MODELS:  # a custom LLM_MODEL from the environment
+        options.insert(0, default)
+    return ModelList(
+        default=default.key,
+        models=[
+            ModelOption(key=m.key, id=m.id, label=m.label, note=m.note, available=llm.api_key(m) is not None)
+            for m in options
+        ],
+    )
+
+
+def _check_model(model: str | None) -> None:
+    try:
+        chosen = llm.resolve_model(model)
+    except llm.UnknownModelError as e:
+        raise _error(422, "unknown_model", str(e)) from None
+    # Only for an explicit choice: with no model chosen and no key at all, the run
+    # still works and the AI steps fall back (categories become Other, template summary).
+    if model and llm.api_key(chosen) is None:
+        raise _error(422, "model_unavailable", llm.missing_key_message(chosen))
+
+
 @app.get("/samples")
 def list_samples() -> list[str]:
     """Synthetic statements anyone can try; see scripts/generate_samples.py."""
@@ -94,7 +121,9 @@ def get_sample(name: str) -> FileResponse:
 def analyze(
     file: UploadFile = File(..., description="Bank statement, .csv or .pdf"),
     password: str | None = Form(None, description="Only for password-protected PDFs. Used to open the file; never stored."),
+    model: str | None = Form(None, description="Which AI model to use, a key from GET /models; default if omitted"),
 ) -> AnalyzeResponse:
+    _check_model(model)
     # A plain def, not async: the pipeline blocks on file parsing and LLM calls,
     # so FastAPI runs it in a worker thread instead of stalling the event loop.
     name = file.filename or "upload"
@@ -105,7 +134,7 @@ def analyze(
         if len(content) > MAX_UPLOAD_BYTES:
             limit = MAX_UPLOAD_BYTES // (1024 * 1024)
             raise AnalysisFailed(413, "file_too_large", f"{name!r} is larger than {limit} MB.", keep_file=False)
-        result = _run_pipeline(name, content, password)
+        result = _run_pipeline(name, content, password, model)
     except AnalysisFailed as f:
         failure_id = None
         try:
@@ -136,7 +165,7 @@ class AnalysisFailed(Exception):
         }
 
 
-def _run_pipeline(name: str, content: bytes, password: str | None) -> AnalyzeResponse:
+def _run_pipeline(name: str, content: bytes, password: str | None, model: str | None = None) -> AnalyzeResponse:
     """Analyze uploaded bytes. Raises AnalysisFailed, or an HTTPException asking for a password."""
     suffix = Path(name).suffix.lower()
     if suffix not in SUPPORTED_SUFFIXES:
@@ -147,7 +176,7 @@ def _run_pipeline(name: str, content: bytes, password: str | None) -> AnalyzeRes
         tmp.write(content)
         tmp_path = Path(tmp.name)
     try:
-        return analyze_file(tmp_path, source_file=name, password=password or None)
+        return analyze_file(tmp_path, source_file=name, password=password or None, model=model)
     # Asking for a password is the normal flow for a locked PDF, not a failure: not recorded.
     except PasswordRequiredError:
         raise _error(422, "password_required", f"{name!r} is password protected. Enter its password to continue.") from None
@@ -241,6 +270,7 @@ def failure_file(failure_id: int) -> FileResponse:
 def retry_failure(
     failure_id: int,
     password: str | None = Form(None, description="Only for password-protected PDFs. Used to open the file; never stored."),
+    model: str | None = Form(None, description="Which AI model to use, a key from GET /models; default if omitted"),
 ) -> AnalyzeResponse:
     """Run the analysis again on the kept file, e.g. after the parser has been improved.
     Success is saved to history and marks the failure resolved; another failure updates
@@ -250,9 +280,10 @@ def retry_failure(
         if db.get_failure(failure_id) is None:
             raise _error(404, "failure_not_found", f"No recorded failure with id {failure_id}.")
         raise _error(404, "file_not_found", "No file was kept for this failure, so it can't be retried.")
+    _check_model(model)
     content, name = kept
     try:
-        result = _run_pipeline(name, content, password)
+        result = _run_pipeline(name, content, password, model)
     except AnalysisFailed as f:
         try:
             db.record_retry_failure(failure_id, **f.record(password))

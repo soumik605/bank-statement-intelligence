@@ -122,9 +122,10 @@ def summarize(
     analytics: Analytics,
     transactions: list[Transaction],
     complete: Complete | None = None,
+    model: str | None = None,
 ) -> Summary:
     source = build_summary_input(statement, analytics, transactions)
-    complete = complete or (lambda messages: llm.chat(messages, temperature=0, max_tokens=400))
+    complete = complete or (lambda messages: llm.chat(messages, model=model, temperature=0, max_tokens=400))
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": json.dumps(source, ensure_ascii=False, indent=2)},
